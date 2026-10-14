@@ -15,7 +15,6 @@ use axum::{
 use serde::Deserialize;
 use serde::Serialize;
 use sqlx::Row;
-use utoipa;
 use uuid::Uuid;
 
 use crate::admin_ui::TargetEnvQuery;
@@ -535,7 +534,7 @@ fn validate_alert_rule(req: &CreateAlertRuleRequest) -> Result<(), (StatusCode, 
             ),
         ));
     }
-    if req.threshold.is_finite() == false || req.threshold.is_nan() {
+    if !req.threshold.is_finite() || req.threshold.is_nan() {
         return Err((StatusCode::BAD_REQUEST, "threshold must be finite".into()));
     }
     if req.window_hours < 1 {

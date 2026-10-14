@@ -360,7 +360,7 @@ async fn evaluate_env_rules(
         let Some(src) = metric_source(&rule.metric_name) else {
             continue;
         };
-        let current = metric_bucket_value(&mut *tx, &src, rule.property_id, today).await?;
+        let current = metric_bucket_value(&mut tx, &src, rule.property_id, today).await?;
         if current < rule.min_sample as f64 {
             continue; // below the noise floor — no evaluation
         }
@@ -371,7 +371,7 @@ async fn evaluate_env_rules(
             // bucket).
             let window_days = ((rule.window_hours.max(1) as i64) + 23) / 24;
             let history = metric_history(
-                &mut *tx,
+                &mut tx,
                 &src,
                 rule.property_id,
                 today - chrono::Duration::days(window_days),

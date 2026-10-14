@@ -13,9 +13,9 @@
 pub mod alerts;
 pub mod audit_consumer;
 pub mod pipeline;
-pub mod valkey_sub;
 pub mod rollups;
 pub mod telemetry_sub;
+pub mod valkey_sub;
 
 use std::sync::Arc;
 
@@ -53,13 +53,9 @@ pub async fn spawn(pool: sqlx::PgPool, config: &StatConfig, bus: BusClient) {
         let bus_url = config.sentin8_bus_url.clone();
         let issuer = config.sentin8_auth_issuer.clone();
         tokio::spawn(async move {
-            let bus = sentin8::bus::client::BusClient::for_workload(
-                &bus_url,
-                &issuer,
-                "stat",
-            )
-            .await
-            .expect("stat bus client certificate");
+            let bus = sentin8::bus::client::BusClient::for_workload(&bus_url, &issuer, "stat")
+                .await
+                .expect("stat bus client certificate");
             alerts::run_alert_evaluator(alert_pool, bus).await;
         });
     }
@@ -106,8 +102,8 @@ pub async fn spawn(pool: sqlx::PgPool, config: &StatConfig, bus: BusClient) {
         let telemetry_pool = pool.clone();
         let valkey_url = config.valkey_url.clone();
         tokio::spawn(async move {
-            if let Err(e) = telemetry_sub::run_telemetry_subscriber(telemetry_pool, valkey_url)
-                .await
+            if let Err(e) =
+                telemetry_sub::run_telemetry_subscriber(telemetry_pool, valkey_url).await
             {
                 tracing::error!(error = %e, "stat: telemetry subscriber loop exited");
             }

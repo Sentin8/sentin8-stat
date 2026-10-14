@@ -161,7 +161,7 @@ async fn ingest_one(
         crate::policy::require_policy(
             &state.policy,
             a,
-            &headers,
+            headers,
             sentin8::shield::EvalTarget::new("sentin8:stat:measure"),
         )
         .await?;

@@ -71,7 +71,7 @@ impl StatConfig {
             valkey_url: env::var("SENTIN8_STAT_VALKEY_URL")
                 .ok()
                 .filter(|s| !s.trim().is_empty())
-                .unwrap_or_else(|| sentin8::config::service_valkey_url()),
+                .unwrap_or_else(sentin8::config::service_valkey_url),
             sentin8_auth_issuer: env::var("SENTIN8_AUTH_ISSUER")
                 .unwrap_or_else(|_| cfg.sentin8_auth_issuer()),
             sentin8_auth_jwks_url: env::var("SENTIN8_AUTH_JWKS_URL")

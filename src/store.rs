@@ -57,7 +57,7 @@ pub async fn create_property(
     req: &CreatePropertyRequest,
 ) -> Result<Property, (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     let row = sqlx::query(
         r#"INSERT INTO properties (env_id, account_id, name, slug)
            VALUES ($1, $2, $3, $4)
@@ -94,7 +94,7 @@ pub async fn list_properties(
     is_admin: bool,
 ) -> Result<Vec<Property>, (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     let rows = sqlx::query(
         r#"SELECT id, env_id, account_id, name, slug, timezone,
                   session_timeout_minutes, retention_days, bot_filter_enabled, pii_deny_list,
@@ -120,7 +120,7 @@ pub async fn get_property(
     id: Uuid,
 ) -> Result<Property, (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     let row = sqlx::query(
         r#"SELECT id, env_id, account_id, name, slug, timezone,
                   session_timeout_minutes, retention_days, bot_filter_enabled, pii_deny_list,
@@ -149,7 +149,7 @@ pub async fn update_property(
     req: &UpdatePropertyRequest,
 ) -> Result<Property, (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     let row = sqlx::query(
         r#"UPDATE properties
            SET name = COALESCE($2, name),
@@ -186,7 +186,7 @@ pub async fn delete_property(
     id: Uuid,
 ) -> Result<(), (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     let res =
         sqlx::query("UPDATE properties SET status = 'archived', updated_at = now() WHERE id = $1")
             .bind(id)
@@ -214,7 +214,7 @@ pub async fn set_retention(
     req: &RetentionRequest,
 ) -> Result<(), (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     let res =
         sqlx::query("UPDATE properties SET retention_days = $2, updated_at = now() WHERE id = $1")
             .bind(id)
@@ -243,7 +243,7 @@ pub async fn update_settings(
     req: &SettingsUpdate,
 ) -> Result<(), (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     let res = sqlx::query(
         r#"UPDATE properties
            SET session_timeout_minutes = COALESCE($2, session_timeout_minutes),
@@ -300,7 +300,7 @@ pub async fn list_accounts(
     is_admin: bool,
 ) -> Result<Vec<Account>, (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     let rows = sqlx::query(
         "SELECT id, env_id, name, created_at FROM accounts WHERE env_id = $1 ORDER BY created_at DESC",
     )
@@ -330,7 +330,7 @@ pub async fn create_account(
     req: &CreateAccountRequest,
 ) -> Result<Account, (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     let row = sqlx::query(
         r#"INSERT INTO accounts (env_id, name)
            VALUES ($1, $2)
@@ -362,7 +362,7 @@ pub async fn create_funnel(
     req: &CreateFunnelRequest,
 ) -> Result<Funnel, (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     let row = sqlx::query(
         r#"INSERT INTO funnels (env_id, property_id, name, steps)
            VALUES ($1, $2, $3, $4)
@@ -394,7 +394,7 @@ pub async fn get_funnel(
     id: Uuid,
 ) -> Result<Funnel, (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     let row = sqlx::query("SELECT id, property_id, name, steps FROM funnels WHERE id = $1")
         .bind(id)
         .fetch_optional(&mut *conn)
@@ -469,7 +469,7 @@ pub async fn insert_event(
 ) -> Result<(), (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
     set_rls(
-        &mut *conn,
+        &mut conn,
         env_id,
         "stat-ingest",
         "machine",
@@ -552,7 +552,7 @@ pub async fn read_traffic_summary(
     to: chrono::NaiveDate,
 ) -> Result<Vec<crate::types::TrafficSummary>, (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     // Fetch all tls.traffic.* metric rows for this property/date range.
     // metric_name looks like: tls.traffic.{from}→{to}.count
     let rows = sqlx::query(
@@ -629,7 +629,7 @@ pub async fn read_metrics_daily(
     to: chrono::NaiveDate,
 ) -> Result<Vec<crate::types::MetricPoint>, (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     let rows = sqlx::query(
         r#"SELECT day, metric_name, value
            FROM aggregate_metrics_daily
@@ -666,7 +666,7 @@ pub async fn read_aggregate(
     to: chrono::NaiveDate,
 ) -> Result<Vec<crate::types::AggregateRow>, (axum::http::StatusCode, String)> {
     let mut conn = pool.begin().await.map_err(err_db)?;
-    set_rls(&mut *conn, env_id, subject, "machine", scopes, is_admin).await?;
+    set_rls(&mut conn, env_id, subject, "machine", scopes, is_admin).await?;
     // table is a fixed allow-list at the handler layer; safe to interpolate.
     let sql = format!(
         "SELECT day, dimensions, metrics FROM {table} WHERE property_id = $1 AND day BETWEEN $2 AND $3 ORDER BY day"

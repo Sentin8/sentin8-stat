@@ -496,11 +496,7 @@ async fn emit_event(
         .execute(&mut *conn)
         .await;
     let _ = sentin8::bus::outbox::insert_outbox_row(
-        &mut *conn,
-        env_id,
-        "stat",
-        event_type,
-        &payload,
+        &mut *conn, env_id, "stat", event_type, &payload,
     )
     .await
     .map_err(|e| {

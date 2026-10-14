@@ -73,10 +73,14 @@ pub async fn run_telemetry_subscriber(pool: PgPool, valkey_url: String) -> anyho
 /// and insert the event. The frame payload is the flat `EventEnvelope`
 /// JSON the Shield emitter serializes (SDD §2.3 wire shape).
 async fn ingest_frame(pool: &PgPool, frame: &Envelope) -> anyhow::Result<()> {
-    let envelope: EventEnvelope = serde_json::from_slice(&frame.payload)
-        .map_err(|e| anyhow::anyhow!("decode: {e}"))?;
+    let envelope: EventEnvelope =
+        serde_json::from_slice(&frame.payload).map_err(|e| anyhow::anyhow!("decode: {e}"))?;
     // Server emitters carry the slug; stat resolves it server-side.
-    let Some(slug) = envelope.property_slug.as_deref().map(str::trim).filter(|s| !s.is_empty())
+    let Some(slug) = envelope
+        .property_slug
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
     else {
         anyhow::bail!("frame without property_slug (producer {})", frame.producer);
     };

@@ -111,15 +111,19 @@ pub async fn run_valkey_subscriber(valkey_url: String) -> anyhow::Result<()> {
     // connect-time subscriptions survive glide-core's automatic
     // reconnects in between (group DESIGN.md §3.1).
     'outer: loop {
-        let pubsub_client =
-            match sentin8::middleware::valkey_client_pubsub(&valkey_url, "sentin8:stat").await {
-                Ok(c) => c,
-                Err(e) => {
-                    tracing::warn!(error = %e, "stat: Valkey pubsub connect failed; retrying in 3s");
-                    tokio::time::sleep(Duration::from_secs(3)).await;
-                    continue;
-                }
-            };
+        let pubsub_client = match sentin8::middleware::valkey_client_pubsub(
+            &valkey_url,
+            "sentin8:stat",
+        )
+        .await
+        {
+            Ok(c) => c,
+            Err(e) => {
+                tracing::warn!(error = %e, "stat: Valkey pubsub connect failed; retrying in 3s");
+                tokio::time::sleep(Duration::from_secs(3)).await;
+                continue;
+            }
+        };
         use glide::PubSubCommands as _;
         if let Err(e) = pubsub_client
             .subscribe(&["stat:metrics:tls", "stat:metrics:log"])
@@ -136,14 +140,14 @@ pub async fn run_valkey_subscriber(valkey_url: String) -> anyhow::Result<()> {
         // the client per message was the ~2/s connection churn (a client
         // create + drop per metric frame).
         loop {
-        let payload: String = match pubsub_client.get_pubsub_message().await {
-            Ok(msg) => String::from_utf8_lossy(&msg.payload).into_owned(),
-            Err(_) => {
-                tracing::warn!("stat: metrics channel ended — reconnecting");
-                tokio::time::sleep(Duration::from_secs(3)).await;
-                continue 'outer;
-            }
-        };
+            let payload: String = match pubsub_client.get_pubsub_message().await {
+                Ok(msg) => String::from_utf8_lossy(&msg.payload).into_owned(),
+                Err(_) => {
+                    tracing::warn!("stat: metrics channel ended — reconnecting");
+                    tokio::time::sleep(Duration::from_secs(3)).await;
+                    continue 'outer;
+                }
+            };
 
             let parsed: MetricsMessage = match serde_json::from_str(&payload) {
                 Ok(m) => m,
