@@ -565,7 +565,6 @@ fn row_to_alert_rule(r: sqlx::postgres::PgRow) -> AlertRule {
 }
 
 /// `POST /v1/admin/properties/{id}/reaggregate`
-///
 /// Delete and rebuild the property's day-granularity `metrics` rollups over
 /// a raw-events window (stat README §7). v1 reaggregates from `stat.events`
 /// ONLY — a window reaching past the property's retention horizon is a 400
@@ -761,7 +760,6 @@ pub async fn create_account(
 const ALERT_RULE_SELECT: &str = "id, env_id, property_id, name, rule_type, metric_name, comparator, threshold, window_hours, min_sample, enabled, created_at, updated_at";
 
 /// `POST /v1/admin/properties/{id}/alert-rules`
-///
 /// Create a per-property custom alert rule (stat README §7). The request
 /// is validated against the known rule types, comparators, and metric
 /// vocabulary (400 on unknown); the property must exist in the target
