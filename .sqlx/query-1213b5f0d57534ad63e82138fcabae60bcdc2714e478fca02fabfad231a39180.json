@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT p.id, e.org_id, p.env_id, p.retention_days\n               FROM properties p\n               JOIN sys.environments e ON e.id = p.env_id\n               WHERE p.retention_days > 0",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "org_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "env_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "retention_days",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "1213b5f0d57534ad63e82138fcabae60bcdc2714e478fca02fabfad231a39180"
+}

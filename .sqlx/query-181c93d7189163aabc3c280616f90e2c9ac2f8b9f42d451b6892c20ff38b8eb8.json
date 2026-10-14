@@ -1,0 +1,101 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, event_type, event_name, client_id, client_type,\n                      page_url, page_title, referrer, screen_name,\n                      subject_id, session_id, timestamp, props, metrics\n               FROM events\n               WHERE property_id = $1\n                 AND created_at < $2\n                 AND archived = false\n               LIMIT 1000",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "event_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "event_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "client_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "client_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "page_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "page_title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "referrer",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "screen_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "subject_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 10,
+        "name": "session_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 11,
+        "name": "timestamp",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 12,
+        "name": "props",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 13,
+        "name": "metrics",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "181c93d7189163aabc3c280616f90e2c9ac2f8b9f42d451b6892c20ff38b8eb8"
+}

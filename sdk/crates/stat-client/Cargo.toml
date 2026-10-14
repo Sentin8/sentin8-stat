@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: Copyright Logically Magic Inc. <hello@logicallymagic.com>
+# SPDX-FileCopyrightText: Copyright Hamid Jahanzad <Hamid@Jahanzad.com>
+# SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
+# SPDX-License-Identifier: Apache-2.0
+
+[package]
+name = "sentin8-stat-client"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Rust client for the Sentin8 Sentin8:Stat analytics & telemetry service."
+
+[lib]
+name = "sentin8_stat_client"
+path = "src/lib.rs"
+
+[dependencies]
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+sentin8-m2m.workspace = true
+sentin8-middleware.workspace = true
+async-trait.workspace = true
+# Used by the fire-and-forget methods (`metric_fire_and_forget`, etc.)
+# which `tokio::spawn` the HTTP POST so the caller never blocks.
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+# Test-only: install the Graviola PQ provider (reqwest panics without one).
+sentin8-tls = { workspace = true }

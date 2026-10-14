@@ -1,0 +1,10 @@
+{
+  "vertical": "sentin8",
+  "services": [
+    {
+      "service_type": "sentin8:stat",
+      "subdomain": "stat",
+      "binary": "sentin8-stat"
+    }
+  ]
+}
