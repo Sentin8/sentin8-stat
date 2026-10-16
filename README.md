@@ -42,14 +42,15 @@ graph TD
         I --> A[M2M authn + rate limit]
         A --> B[PII deny-list strip + flag]
         B --> C[Dedupe idempotency]
-        C --> D[(stat tables - RLS env-scoped)]
+        C --> D["(stat tables - RLS env-scoped)"]
         D --> E[Bus enqueue - aggregate.updated events]
     end
     subgraph Read side
         F[Data API - sentin8:stat:data:read] --> R[Rollups: counts, funnels, sessions]
-        G[Admin RFW UI + API] --> P[(Properties / dimensions)]
+        G["Admin RFW UI + API"]
+        G --> P["(Properties / dimensions)"]
     end
-    subgraph Embedded worker (background tasks)
+    subgraph SGsi54rs["Embedded worker (background tasks)"]
         W1[Bus SSE consumer - stat-events] --> W2[7-stage pipeline]
         W2 --> W3[Rollup loop minute→year]
         W2 --> W4[Alert evaluator stat.alert.*]
