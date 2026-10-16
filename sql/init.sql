@@ -438,10 +438,13 @@ CREATE POLICY stat_accounts_delete ON stat.accounts FOR DELETE USING (sentin8_co
 -- The Sentin8:Auth M2M client registration for each (scope `sentin8:stat:measure`) is handled
 -- by the Sentin8:Auth admin API at bootstrap time, not by this SQL.
 --
--- NOTE: Vertical service telemetry properties (e.g. Bank8:Ledger, Bank8:Payments,
--- Bank8:FDX) are NOT seeded here. They are seeded by each vertical's own
--- `vertical init` SQL via `sentin8-cli vertical init`. The platform seed only
--- creates properties for platform services.
+-- NOTE: this seed covers the platform services' own properties. Every
+-- other service's telemetry property is declared in its repo's
+-- `service-registration.json` (`telemetry_property` — TELESEED-1,
+-- design `design/sentin8-provisioned-rls-and-telemetry-design.md`
+-- §2.2) and seeded into this table on the platform DB by
+-- `sentin8-cli vertical init`/`enroll` (a vertical's own init SQL runs
+-- against the vertical's database and can never reach this one).
 INSERT INTO stat.properties (env_id, name, slug, timezone, retention_days)
 VALUES
     ('00000000-0000-0000-0000-000000000002', 'Sentin8:Auth Platform Telemetry',  'auth',  'UTC', 90),

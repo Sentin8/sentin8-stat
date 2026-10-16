@@ -4,7 +4,11 @@
     {
       "service_type": "sentin8:stat",
       "subdomain": "stat",
-      "binary": "sentin8-stat"
+      "binary": "sentin8-stat",
+      "telemetry_property": {
+        "slug": "stat",
+        "name": "Sentin8:Stat Platform Telemetry"
+      }
     }
   ]
 }
