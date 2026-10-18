@@ -33,6 +33,15 @@ pub struct AppState {
 }
 
 /// Handle health.
+#[utoipa::path(
+    get,
+    path = "/v1/health",
+    responses(
+        (status = 200, description = "Liveness (version, build, active connections)", body = serde_json::Value),
+    ),
+    security(),
+    tag = "meta",
+)]
 pub async fn health(State(_state): State<AppState>) -> Json<serde_json::Value> {
     let mut payload = serde_json::json!({ "status": "ok", "service": "stat", "version": sentin8::build_info::id(), "build": sentin8::build_info::build_hash() });
     if let Some(n) = sentin8::middleware::traffic_counter::process_active_connections() {
@@ -42,6 +51,16 @@ pub async fn health(State(_state): State<AppState>) -> Json<serde_json::Value> {
 }
 
 /// Handle readiness.
+#[utoipa::path(
+    get,
+    path = "/v1/readiness",
+    responses(
+        (status = 200, description = "Readiness (PG reachable + writer workers)", body = serde_json::Value),
+        (status = 503, description = "Not ready"),
+    ),
+    security(),
+    tag = "meta",
+)]
 pub async fn readiness(
     State(state): State<AppState>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, String)> {

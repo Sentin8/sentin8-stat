@@ -148,7 +148,7 @@ pub enum CollectBody {
 
 /// Shorthand request bodies.
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, utoipa::ToSchema)]
 /// Request body for pageview.
 pub struct PageviewRequest {
     /// property identifier.
@@ -323,7 +323,7 @@ pub struct CreateAccountRequest {
 
 // ── Data API types ───────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, utoipa::ToSchema)]
 /// The metricpoint type.
 pub struct MetricPoint {
     /// The day.
@@ -368,7 +368,7 @@ pub struct TrafficSummary {
     pub errors: f64,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, utoipa::ToSchema)]
 /// The funnel type.
 pub struct Funnel {
     /// Identifier.
@@ -381,7 +381,7 @@ pub struct Funnel {
     pub steps: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, utoipa::ToSchema)]
 /// Request body for createfunnel.
 pub struct CreateFunnelRequest {
     /// property identifier.

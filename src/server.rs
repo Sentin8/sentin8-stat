@@ -104,7 +104,7 @@ pub fn routes(
         // POST alias for RFW row_action_post (renderer only supports POST)
         .route(
             "/v1/admin/properties/{id}/delete",
-            post(admin_api::delete_property),
+            post(crate::stat_aliases::property_delete),
         )
         .route(
             "/v1/admin/properties/{id}/retention",

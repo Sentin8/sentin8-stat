@@ -25,6 +25,7 @@ pub mod ingest;
 pub mod openapi;
 /// Shield (Sentin8:Policy) integration — shared bridge re-exports.
 pub mod policy;
+pub mod stat_aliases;
 /// Service self-registration declarations.
 pub mod registration;
 /// Axum router and server.

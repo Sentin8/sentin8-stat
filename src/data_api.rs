@@ -49,7 +49,7 @@ async fn resolve_property_id(
     ))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::IntoParams, utoipa::ToSchema)]
 /// The reportquery type.
 pub struct ReportQuery {
     #[serde(default)]
@@ -76,6 +76,17 @@ fn date_range(
 
 /// `GET /v1/data/reports` — list available report templates.
 /// List reports.
+#[utoipa::path(
+    get,
+    path = "/v1/data/reports",
+    params(ReportQuery),
+    responses(
+        (status = 200, description = "Saved reports for this property", body = Vec<serde_json::Value>),
+        (status = 403, description = "Missing stat:data:read scope"),
+    ),
+    security(("sentin8:stat:data:read" = [])),
+    tag = "data",
+)]
 pub async fn list_reports(
     State(_state): State<AppState>,
     _headers: HeaderMap,
@@ -95,6 +106,18 @@ pub async fn list_reports(
 
 /// `GET /v1/data/reports/{report_id}` — run a pre-canned report.
 /// Run report.
+#[utoipa::path(
+    get,
+    path = "/v1/data/reports/{report_id}",
+    params(("report_id" = String, Path, description = "Report id")),
+    responses(
+        (status = 200, description = "The report's result rows", body = serde_json::Value),
+        (status = 403, description = "Missing stat:data:read scope"),
+        (status = 404, description = "Unknown report"),
+    ),
+    security(("sentin8:stat:data:read" = [])),
+    tag = "data",
+)]
 pub async fn run_report(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -157,6 +180,17 @@ pub struct MetricsQuery {
 /// `GET /v1/data/metrics` — server-telemetry time-series from
 /// `sentin8_stat_aggregate_metrics_daily`.
 /// Handle metrics.
+#[utoipa::path(
+    get,
+    path = "/v1/data/metrics",
+    params(ReportQuery),
+    responses(
+        (status = 200, description = "Aggregated metrics", body = Vec<serde_json::Value>),
+        (status = 403, description = "Missing stat:data:read scope"),
+    ),
+    security(("sentin8:stat:data:read" = [])),
+    tag = "data",
+)]
 pub async fn metrics(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -195,6 +229,17 @@ pub async fn metrics(
 /// TLS flushes every 10 seconds. Used by Dash's `MetricsTable` widget
 /// for system/org/env metrics.
 /// Handle traffic.
+#[utoipa::path(
+    get,
+    path = "/v1/data/traffic",
+    params(ReportQuery),
+    responses(
+        (status = 200, description = "Traffic summaries", body = Vec<serde_json::Value>),
+        (status = 403, description = "Missing stat:data:read scope"),
+    ),
+    security(("sentin8:stat:data:read" = [])),
+    tag = "data",
+)]
 pub async fn traffic(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -226,6 +271,17 @@ pub async fn traffic(
 
 /// `GET /v1/data/sessions` — session breakdown.
 /// Handle sessions.
+#[utoipa::path(
+    get,
+    path = "/v1/data/sessions",
+    params(ReportQuery),
+    responses(
+        (status = 200, description = "Session rows", body = Vec<serde_json::Value>),
+        (status = 403, description = "Missing stat:data:read scope"),
+    ),
+    security(("sentin8:stat:data:read" = [])),
+    tag = "data",
+)]
 pub async fn sessions(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -258,6 +314,17 @@ pub async fn sessions(
 
 /// `POST /v1/data/funnels` — define a funnel.
 /// Create funnel.
+#[utoipa::path(
+    post,
+    path = "/v1/data/funnels",
+    request_body = types::CreateFunnelRequest,
+    responses(
+        (status = 200, description = "Funnel created", body = types::Funnel),
+        (status = 403, description = "Missing stat:data:write scope"),
+    ),
+    security(("sentin8:stat:data:write" = [])),
+    tag = "data",
+)]
 pub async fn create_funnel(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -292,6 +359,18 @@ pub async fn create_funnel(
 
 /// `GET /v1/data/funnels/{id}` — funnel report.
 /// Fetch funnel.
+#[utoipa::path(
+    get,
+    path = "/v1/data/funnels/{id}",
+    params(("id" = String, Path, description = "Funnel id")),
+    responses(
+        (status = 200, description = "Funnel steps + drop-off", body = serde_json::Value),
+        (status = 403, description = "Missing stat:data:read scope"),
+        (status = 404, description = "Unknown funnel"),
+    ),
+    security(("sentin8:stat:data:read" = [])),
+    tag = "data",
+)]
 pub async fn get_funnel(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -333,6 +412,17 @@ pub struct RetentionQuery {
 
 /// `GET /v1/data/retention` — cohort retention (reads sessions aggregate).
 /// Handle retention.
+#[utoipa::path(
+    get,
+    path = "/v1/data/retention",
+    params(ReportQuery),
+    responses(
+        (status = 200, description = "Retention cohorts", body = serde_json::Value),
+        (status = 403, description = "Missing stat:data:read scope"),
+    ),
+    security(("sentin8:stat:data:read" = [])),
+    tag = "data",
+)]
 pub async fn retention(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -368,6 +458,16 @@ pub async fn retention(
 ///
 /// Uses a Valkey sorted-set counter keyed by minute.
 /// Handle realtime.
+#[utoipa::path(
+    get,
+    path = "/v1/data/realtime",
+    responses(
+        (status = 200, description = "Realtime counters (active sessions, recent events)", body = serde_json::Value),
+        (status = 403, description = "Missing stat:data:read scope"),
+    ),
+    security(("sentin8:stat:data:read" = [])),
+    tag = "data",
+)]
 pub async fn realtime(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -422,6 +522,18 @@ const ALLOWED_TABLES: &[&str] = &[
 
 /// `POST /v1/data/query` — arbitrary aggregate query (JSON DSL, aggregates only).
 /// Handle query.
+#[utoipa::path(
+    post,
+    path = "/v1/data/query",
+    request_body = serde_json::Value,
+    responses(
+        (status = 200, description = "Query result rows", body = serde_json::Value),
+        (status = 400, description = "Invalid query"),
+        (status = 403, description = "Missing stat:data:read scope"),
+    ),
+    security(("sentin8:stat:data:read" = [])),
+    tag = "data",
+)]
 pub async fn query(
     State(state): State<AppState>,
     headers: HeaderMap,

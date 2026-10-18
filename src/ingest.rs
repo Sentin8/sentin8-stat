@@ -216,6 +216,17 @@ async fn ingest_one(
 
 /// `POST /v1/m/collect` — batch ingest (max 100 events / 1 MiB).
 /// Handle collect.
+#[utoipa::path(
+    post,
+    path = "/v1/m/collect",
+    request_body = serde_json::Value,
+    responses(
+        (status = 200, description = "Accepted", body = serde_json::Value),
+        (status = 403, description = "Property unknown / origin mismatch"),
+    ),
+    security(),
+    tag = "ingest",
+)]
 pub async fn collect(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -280,6 +291,16 @@ const PIXEL_GIF: &[u8] = &[
 ];
 
 /// Handle pixel.
+#[utoipa::path(
+    get,
+    path = "/v1/m/collect",
+    params(("pt" = String, Query, description = "Property slug")),
+    responses(
+        (status = 200, description = "1x1 transparent GIF (beacon)"),
+    ),
+    security(),
+    tag = "ingest",
+)]
 pub async fn pixel(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -330,6 +351,17 @@ pub async fn pixel(
 
 /// `POST /v1/m/pageview`
 /// Handle pageview.
+#[utoipa::path(
+    post,
+    path = "/v1/m/pageview",
+    request_body = serde_json::Value,
+    responses(
+        (status = 204, description = "Stored"),
+        (status = 403, description = "Property unknown"),
+    ),
+    security(),
+    tag = "ingest",
+)]
 pub async fn pageview(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -366,6 +398,17 @@ pub async fn pageview(
 
 /// `POST /v1/m/event`
 /// Handle event.
+#[utoipa::path(
+    post,
+    path = "/v1/m/event",
+    request_body = serde_json::Value,
+    responses(
+        (status = 204, description = "Stored"),
+        (status = 403, description = "Property unknown"),
+    ),
+    security(),
+    tag = "ingest",
+)]
 pub async fn event(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -402,6 +445,17 @@ pub async fn event(
 
 /// `POST /v1/m/conversion`
 /// Handle conversion.
+#[utoipa::path(
+    post,
+    path = "/v1/m/conversion",
+    request_body = serde_json::Value,
+    responses(
+        (status = 204, description = "Stored"),
+        (status = 403, description = "Property unknown"),
+    ),
+    security(),
+    tag = "ingest",
+)]
 pub async fn conversion(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -438,6 +492,17 @@ pub async fn conversion(
 
 /// `POST /v1/m/metric` — server-only telemetry (requires `sentin8:stat:measure`).
 /// Handle metric.
+#[utoipa::path(
+    post,
+    path = "/v1/m/metric",
+    request_body = serde_json::Value,
+    responses(
+        (status = 204, description = "Stored"),
+        (status = 403, description = "Property unknown"),
+    ),
+    security(),
+    tag = "ingest",
+)]
 pub async fn metric(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -476,6 +541,17 @@ pub async fn metric(
 
 /// `POST /v1/m/batch` — server-side batch (M2M required, higher limits).
 /// Handle batch.
+#[utoipa::path(
+    post,
+    path = "/v1/m/batch",
+    request_body = serde_json::Value,
+    responses(
+        (status = 200, description = "Per-item results (offline replay)"),
+        (status = 403, description = "Property unknown"),
+    ),
+    security(),
+    tag = "ingest",
+)]
 pub async fn batch(
     State(state): State<AppState>,
     headers: HeaderMap,
