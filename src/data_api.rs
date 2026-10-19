@@ -81,7 +81,7 @@ fn date_range(
     path = "/v1/data/reports",
     params(ReportQuery),
     responses(
-        (status = 200, description = "Saved reports for this property", body = Vec<serde_json::Value>),
+        (status = 200, description = "Saved reports for this property", body = types::ReportListResponse),
         (status = 403, description = "Missing stat:data:read scope"),
     ),
     security(("sentin8:stat:data:read" = [])),
@@ -90,18 +90,18 @@ fn date_range(
 pub async fn list_reports(
     State(_state): State<AppState>,
     _headers: HeaderMap,
-) -> Json<serde_json::Value> {
-    Json(serde_json::json!({
-        "reports": [
-            "events-over-time",
-            "top-pages",
-            "traffic-sources",
-            "conversions",
-            "retention",
-            "funnel",
-            "metrics-over-time"
-        ]
-    }))
+) -> Json<types::ReportListResponse> {
+    Json(types::ReportListResponse {
+        reports: vec![
+            "events-over-time".into(),
+            "top-pages".into(),
+            "traffic-sources".into(),
+            "conversions".into(),
+            "retention".into(),
+            "funnel".into(),
+            "metrics-over-time".into(),
+        ],
+    })
 }
 
 /// `GET /v1/data/reports/{report_id}` - run a pre-canned report.
@@ -111,7 +111,7 @@ pub async fn list_reports(
     path = "/v1/data/reports/{report_id}",
     params(("report_id" = String, Path, description = "Report id")),
     responses(
-        (status = 200, description = "The report's result rows", body = serde_json::Value),
+        (status = 200, description = "The report's result rows", body = types::ReportRunResponse),
         (status = 403, description = "Missing stat:data:read scope"),
         (status = 404, description = "Unknown report"),
     ),
@@ -123,7 +123,7 @@ pub async fn run_report(
     headers: HeaderMap,
     Path(report_id): Path<String>,
     Query(q): Query<ReportQuery>,
-) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+) -> Result<Json<types::ReportRunResponse>, (StatusCode, String)> {
     let a = auth::require_data_read(&state.config, &headers).await?;
     crate::policy::require_policy(
         &state.policy,
@@ -156,9 +156,7 @@ pub async fn run_report(
         to,
     )
     .await?;
-    Ok(Json(
-        serde_json::json!({ "report": report_id, "rows": rows }),
-    ))
+    Ok(Json(types::ReportRunResponse { report: report_id, rows }))
 }
 
 #[derive(Debug, Deserialize)]
@@ -185,7 +183,7 @@ pub struct MetricsQuery {
     path = "/v1/data/metrics",
     params(ReportQuery),
     responses(
-        (status = 200, description = "Aggregated metrics", body = Vec<serde_json::Value>),
+        (status = 200, description = "Aggregated metrics", body = Vec<types::MetricPoint>),
         (status = 403, description = "Missing stat:data:read scope"),
     ),
     security(("sentin8:stat:data:read" = [])),
@@ -234,7 +232,7 @@ pub async fn metrics(
     path = "/v1/data/traffic",
     params(ReportQuery),
     responses(
-        (status = 200, description = "Traffic summaries", body = Vec<serde_json::Value>),
+        (status = 200, description = "Traffic summaries", body = Vec<types::TrafficSummary>),
         (status = 403, description = "Missing stat:data:read scope"),
     ),
     security(("sentin8:stat:data:read" = [])),
@@ -276,7 +274,7 @@ pub async fn traffic(
     path = "/v1/data/sessions",
     params(ReportQuery),
     responses(
-        (status = 200, description = "Session rows", body = Vec<serde_json::Value>),
+        (status = 200, description = "Session rows", body = Vec<types::AggregateRow>),
         (status = 403, description = "Missing stat:data:read scope"),
     ),
     security(("sentin8:stat:data:read" = [])),
@@ -364,7 +362,7 @@ pub async fn create_funnel(
     path = "/v1/data/funnels/{id}",
     params(("id" = String, Path, description = "Funnel id")),
     responses(
-        (status = 200, description = "Funnel steps + drop-off", body = serde_json::Value),
+        (status = 200, description = "Funnel steps + drop-off", body = types::Funnel),
         (status = 403, description = "Missing stat:data:read scope"),
         (status = 404, description = "Unknown funnel"),
     ),
@@ -417,7 +415,7 @@ pub struct RetentionQuery {
     path = "/v1/data/retention",
     params(ReportQuery),
     responses(
-        (status = 200, description = "Retention cohorts", body = serde_json::Value),
+        (status = 200, description = "Retention cohorts", body = types::RetentionResponse),
         (status = 403, description = "Missing stat:data:read scope"),
     ),
     security(("sentin8:stat:data:read" = [])),
@@ -427,7 +425,7 @@ pub async fn retention(
     State(state): State<AppState>,
     headers: HeaderMap,
     Query(q): Query<RetentionQuery>,
-) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+) -> Result<Json<types::RetentionResponse>, (StatusCode, String)> {
     let a = auth::require_data_read(&state.config, &headers).await?;
     crate::policy::require_policy(
         &state.policy,
@@ -451,7 +449,7 @@ pub async fn retention(
         to,
     )
     .await?;
-    Ok(Json(serde_json::json!({ "cohort": rows })))
+    Ok(Json(types::RetentionResponse { cohort: rows }))
 }
 
 /// `GET /v1/data/realtime` - real-time active users (last 5 min, in-memory).
@@ -462,7 +460,7 @@ pub async fn retention(
     get,
     path = "/v1/data/realtime",
     responses(
-        (status = 200, description = "Realtime counters (active sessions, recent events)", body = serde_json::Value),
+        (status = 200, description = "Realtime counters (active sessions, recent events)", body = types::RealtimeResponse),
         (status = 403, description = "Missing stat:data:read scope"),
     ),
     security(("sentin8:stat:data:read" = [])),
@@ -472,7 +470,7 @@ pub async fn realtime(
     State(state): State<AppState>,
     headers: HeaderMap,
     Query(q): Query<ReportQuery>,
-) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+) -> Result<Json<types::RealtimeResponse>, (StatusCode, String)> {
     let a = auth::require_data_read(&state.config, &headers).await?;
     crate::policy::require_policy(
         &state.policy,
@@ -489,12 +487,13 @@ pub async fn realtime(
     use glide::AsyncCommands as _;
     let count: Result<i64, _> = conn.zcount(key, cutoff, now).await;
     let active = count.unwrap_or(0);
-    Ok(Json(
-        serde_json::json!({ "property_id": property_id, "active_users": active }),
-    ))
+    Ok(Json(types::RealtimeResponse {
+        property_id,
+        active_users: active,
+    }))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 /// The querydsl type.
 pub struct QueryDsl {
     /// property identifier.
@@ -525,9 +524,9 @@ const ALLOWED_TABLES: &[&str] = &[
 #[utoipa::path(
     post,
     path = "/v1/data/query",
-    request_body = serde_json::Value,
+    request_body = QueryDsl,
     responses(
-        (status = 200, description = "Query result rows", body = serde_json::Value),
+        (status = 200, description = "Query result rows", body = types::QueryResponse),
         (status = 400, description = "Invalid query"),
         (status = 403, description = "Missing stat:data:read scope"),
     ),
@@ -538,7 +537,7 @@ pub async fn query(
     State(state): State<AppState>,
     headers: HeaderMap,
     Json(req): Json<QueryDsl>,
-) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+) -> Result<Json<types::QueryResponse>, (StatusCode, String)> {
     let a = auth::require_data_read(&state.config, &headers).await?;
     crate::policy::require_policy(
         &state.policy,
@@ -568,7 +567,7 @@ pub async fn query(
             to,
         )
         .await?;
-        return Ok(Json(serde_json::json!({ "rows": rows })));
+        return Ok(Json(types::QueryResponse { rows }));
     }
     let rows = store::read_aggregate(
         &state.pool,
@@ -582,7 +581,7 @@ pub async fn query(
         to,
     )
     .await?;
-    Ok(Json(serde_json::json!({ "rows": rows })))
+    Ok(Json(types::QueryResponse { rows }))
 }
 
 /// Append an event to the service's local `stat.outbox` for Bus relay

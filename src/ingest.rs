@@ -219,9 +219,9 @@ async fn ingest_one(
 #[utoipa::path(
     post,
     path = "/v1/m/collect",
-    request_body = serde_json::Value,
+    request_body = types::CollectBody,
     responses(
-        (status = 200, description = "Accepted", body = serde_json::Value),
+        (status = 204, description = "Accepted (no body)"),
         (status = 403, description = "Property unknown / origin mismatch"),
     ),
     security(),
@@ -354,7 +354,7 @@ pub async fn pixel(
 #[utoipa::path(
     post,
     path = "/v1/m/pageview",
-    request_body = serde_json::Value,
+    request_body = types::PageviewRequest,
     responses(
         (status = 204, description = "Stored"),
         (status = 403, description = "Property unknown"),
@@ -401,7 +401,7 @@ pub async fn pageview(
 #[utoipa::path(
     post,
     path = "/v1/m/event",
-    request_body = serde_json::Value,
+    request_body = types::EventRequest,
     responses(
         (status = 204, description = "Stored"),
         (status = 403, description = "Property unknown"),
@@ -448,7 +448,7 @@ pub async fn event(
 #[utoipa::path(
     post,
     path = "/v1/m/conversion",
-    request_body = serde_json::Value,
+    request_body = types::ConversionShorthandRequest,
     responses(
         (status = 204, description = "Stored"),
         (status = 403, description = "Property unknown"),
@@ -495,7 +495,7 @@ pub async fn conversion(
 #[utoipa::path(
     post,
     path = "/v1/m/metric",
-    request_body = serde_json::Value,
+    request_body = types::MetricRequest,
     responses(
         (status = 204, description = "Stored"),
         (status = 403, description = "Property unknown"),
@@ -544,7 +544,7 @@ pub async fn metric(
 #[utoipa::path(
     post,
     path = "/v1/m/batch",
-    request_body = serde_json::Value,
+    request_body = types::CollectBody,
     responses(
         (status = 200, description = "Per-item results (offline replay)"),
         (status = 403, description = "Property unknown"),

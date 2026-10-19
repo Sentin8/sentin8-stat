@@ -37,7 +37,7 @@ pub struct AppState {
     get,
     path = "/v1/health",
     responses(
-        (status = 200, description = "Liveness (version, build, active connections)", body = serde_json::Value),
+        (status = 200, description = "Liveness (version, build, active connections)", body = sentin8::middleware::health::LiveHealth),
     ),
     security(),
     tag = "meta",
@@ -55,7 +55,7 @@ pub async fn health(State(_state): State<AppState>) -> Json<serde_json::Value> {
     get,
     path = "/v1/readiness",
     responses(
-        (status = 200, description = "Readiness (PG reachable + writer workers)", body = serde_json::Value),
+        (status = 200, description = "Readiness (PG reachable + writer workers)", body = ReadinessResponse),
         (status = 503, description = "Not ready"),
     ),
     security(),
@@ -75,4 +75,13 @@ pub async fn readiness(
         "status": "ready",
         "checks": { "postgres": "ok" },
     })))
+}
+
+/// The `GET /v1/readiness` payload (PG + writer workers).
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct ReadinessResponse {
+    /// `ready`/`degraded`.
+    pub status: String,
+    /// Per-dependency check results.
+    pub checks: std::collections::BTreeMap<String, String>,
 }

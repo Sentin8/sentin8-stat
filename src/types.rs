@@ -14,7 +14,7 @@ use uuid::Uuid;
 /// Full event envelope as sent by SDKs / servers. Mirrors the JSON shape in
 /// the design doc , extended with the optional `metrics` field for
 /// server telemetry events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 /// The eventenvelope type.
 pub struct EventEnvelope {
     /// event identifier.
@@ -94,21 +94,21 @@ pub struct EventEnvelope {
     pub props_pii_stripped: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, utoipa::ToSchema)]
 /// The geohint type.
 pub struct GeoHint {
     /// The ip.
     pub ip: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, utoipa::ToSchema)]
 /// The devicehint type.
 pub struct DeviceHint {
     /// The user agent.
     pub user_agent: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, utoipa::ToSchema)]
 /// The trafficsource type.
 pub struct TrafficSource {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -122,7 +122,7 @@ pub struct TrafficSource {
     pub utm_campaign: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 /// The conversion type.
 pub struct Conversion {
     /// Identifier.
@@ -137,7 +137,7 @@ pub struct Conversion {
 
 /// `POST /v1/m/collect` body - either a single envelope or an array.
 /// Ingest request body - one envelope or a batch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 #[serde(untagged)]
 pub enum CollectBody {
     /// A single envelope.
@@ -171,7 +171,7 @@ pub struct PageviewRequest {
     pub props: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(utoipa::ToSchema, Debug, Clone, Deserialize)]
 /// Request body for event.
 pub struct EventRequest {
     /// property identifier.
@@ -191,7 +191,7 @@ pub struct EventRequest {
     pub props: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(utoipa::ToSchema, Debug, Clone, Deserialize)]
 /// Request body for conversionshorthand.
 pub struct ConversionShorthandRequest {
     /// property identifier.
@@ -208,7 +208,7 @@ pub struct ConversionShorthandRequest {
     pub props: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(utoipa::ToSchema, Debug, Clone, Deserialize)]
 /// Request body for metric.
 pub struct MetricRequest {
     /// property identifier.
@@ -334,7 +334,7 @@ pub struct MetricPoint {
     pub value: f64,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(utoipa::ToSchema, Debug, Clone, Serialize, Deserialize)]
 /// The aggregaterow type.
 pub struct AggregateRow {
     /// The day.
@@ -348,7 +348,7 @@ pub struct AggregateRow {
 /// Per-service traffic summary row - one row per `from_service → to_service`
 /// pair, aggregated from TLS's `tls.traffic.*` metrics.
 /// Returned by `GET /v1/data/traffic`.
-#[derive(Debug, Clone, Serialize)]
+#[derive(utoipa::ToSchema, Debug, Clone, Serialize, Deserialize)]
 /// The trafficsummary type.
 pub struct TrafficSummary {
     /// The calling service (e.g. `bff`).
@@ -429,4 +429,45 @@ pub fn strip_pii(props: &serde_json::Value) -> (serde_json::Value, bool) {
         cleaned.insert(k.clone(), v.clone());
     }
     (serde_json::Value::Object(cleaned), stripped)
+}
+
+// ── Data-API response envelopes (OAPEC-9 typed bodies) ────────────────────
+
+/// The saved-report catalog for a property.
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct ReportListResponse {
+    /// The report ids the data API serves.
+    pub reports: Vec<String>,
+}
+
+/// One pre-canned report run.
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct ReportRunResponse {
+    /// The report id that ran.
+    pub report: String,
+    /// The aggregate rows of the report window.
+    pub rows: Vec<AggregateRow>,
+}
+
+/// The retention cohort table.
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct RetentionResponse {
+    /// Cohort rows (week/day since first visit, retained users, rate).
+    pub cohort: Vec<AggregateRow>,
+}
+
+/// The rows-envelope of `POST /v1/data/query`.
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct QueryResponse {
+    /// The aggregate rows matching the DSL query.
+    pub rows: Vec<AggregateRow>,
+}
+
+/// The realtime counter snapshot.
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct RealtimeResponse {
+    /// The property the counters refer to.
+    pub property_id: Uuid,
+    /// Sessions active in the realtime window.
+    pub active_users: i64,
 }
