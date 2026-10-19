@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-//! Audit-volume consumer — SSE subscription to `sentin8:sys:audit:recorded`
+//! Audit-volume consumer - SSE subscription to `sentin8:sys:audit:recorded`
 //! (stat DESIGN.md §2, STATW-2).
 //!
 //! Sys's `POST /v1/audit` ingest API fans out one
@@ -16,12 +16,12 @@
 //!
 //! The event payload identifies the emitting service; the matching
 //! platform-telemetry property is resolved by slug (each service's
-//! property slug equals its name — see the properties seed in
+//! property slug equals its name - see the properties seed in
 //! `sql/init.sql`). Events whose service has no property are counted
 //! against the `sys` property (the platform plane).
 //!
 //! Delivery is Bus at-least-once; ACK advances the consumer group. A
-//! redelivered event may double-increment within the same day bucket —
+//! redelivered event may double-increment within the same day bucket -
 //! accepted for volume analytics.
 
 use std::sync::Arc;
@@ -55,7 +55,7 @@ struct AuditConsumerState {
     bus: BusClient,
 }
 
-/// SSE consume loop — same shape as the ingest plane's `sse_consume_loop`:
+/// SSE consume loop - same shape as the ingest plane's `sse_consume_loop`:
 /// one long-lived Server-Sent Events connection to Bus, each `data:` line
 /// a JSON `ConsumeMessage`, ACK via the HTTP ack endpoint, reconnect with
 /// a 2s backoff.
@@ -133,7 +133,7 @@ async fn audit_consume_loop(state: Arc<AuditConsumerState>) {
                             .await;
                     }
                     Err(e) => {
-                        tracing::warn!(error = %e, "stat: audit event processing failed — NOT acked (bus redelivery retries)");
+                        tracing::warn!(error = %e, "stat: audit event processing failed - NOT acked (bus redelivery retries)");
                         // No ACK on failure: Bus at-least-once redelivers the
                         // message to the group instead of silently dropping
                         // the sample. A poison message is bounded by the
@@ -152,7 +152,7 @@ async fn audit_consume_loop(state: Arc<AuditConsumerState>) {
 /// Increment the `audit.events` counter for the emitting service.
 ///
 /// The payload carries `service` (stamped by the producer), `severity`, and
-/// the tenant `env_id`. The property is resolved by slug — the payload's
+/// the tenant `env_id`. The property is resolved by slug - the payload's
 /// service name is the colon `vertical:service` form while property slugs
 /// are bare (stat DESIGN §2), so the vertical prefix is stripped (payload
 /// completeness is the producer's contract; the consumer tolerates both
@@ -199,7 +199,7 @@ async fn record_audit_event(
                 r.get::<uuid::Uuid, _>("env_id"),
             ),
             None => {
-                // No property for this service — fall back to the sys
+                // No property for this service - fall back to the sys
                 // property; if even that is missing (pre-seed boot), skip.
                 let row = sqlx::query(
                     "SELECT id, env_id FROM properties WHERE slug = $1 AND status = 'active' LIMIT 1",
@@ -229,13 +229,13 @@ async fn record_audit_event(
     let dims = serde_json::json!({
         "service": service,
         "severity": severity,
-        // Tenant env from the payload (payload completeness — the consumer
+        // Tenant env from the payload (payload completeness - the consumer
         // never calls back). Absent → the property's own env.
         "env_id": env_id.map(|v| v.to_string()).unwrap_or_default(),
     });
     let dims_json = serde_json::to_string(&dims).unwrap_or_else(|_| "{}".into());
     // Same non-crypto dimension hash as the pipeline's `sha256_hash`
-    // (pipeline.rs) — deterministic bucket key, not a security boundary.
+    // (pipeline.rs) - deterministic bucket key, not a security boundary.
     let dims_hash = {
         let mut h: u128 = 0x6a09e667f3bcc908;
         for b in dims_json.as_bytes() {

@@ -7,16 +7,16 @@
 //!
 //! Services and the embedded Shield engine publish telemetry frames
 //! (policy decisions, service metrics) to the MemBus Pub/Sub family
-//! `stat.telemetry` — fire-and-forget, ephemeral (a stat outage drops
+//! `stat.telemetry` - fire-and-forget, ephemeral (a stat outage drops
 //! frames by contract). This worker subscribes, decodes each frame into
 //! the `EventEnvelope` shape, resolves the emitter's slug to a property
-//! server-side, and inserts the event — the same store path as the HTTP
+//! server-side, and inserts the event - the same store path as the HTTP
 //! ingest, minus the HTTP-plane concerns (auth, rate limit, pixel
 //! fallback): the channel key already carries the env (membus tenant
 //! isolation) and the frame carries the platform-trust `server`
 //! client type.
 //!
-//! Ephemeral-class contract: no ack, no retry, no DLQ — a frame that
+//! Ephemeral-class contract: no ack, no retry, no DLQ - a frame that
 //! fails to decode or resolve is logged and dropped. "Non-important
 //! updates" (owner decision, SDD §1.4 D5).
 
@@ -55,7 +55,7 @@ pub async fn run_telemetry_subscriber(pool: PgPool, valkey_url: String) -> anyho
         loop {
             let frame = match sub.next_frame().await {
                 Ok(Some(f)) => f,
-                Ok(None) => break, // channel closed — reconnect
+                Ok(None) => break, // channel closed - reconnect
                 Err(e) => {
                     tracing::warn!(error = %e, "stat: telemetry frame error; reconnecting");
                     break;

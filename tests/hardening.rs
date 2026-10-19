@@ -3,17 +3,17 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-// Stat hardening verification tests — Stories 3.6.2, 3.6.3, 3.6.4, 3.6.5.
+// Stat hardening verification tests - Stories 3.6.2, 3.6.3, 3.6.4, 3.6.5.
 //
 // Verifies:
-// - 3.6.2: RLS enforcement — cross-tenant query attempts return empty,
+// - 3.6.2: RLS enforcement - cross-tenant query attempts return empty,
 //   cross-tenant ingest with wrong propertyId rejected.
-// - 3.6.3: PII deny-list — events with email/phone/pan/pin/cvv/ssn/
+// - 3.6.3: PII deny-list - events with email/phone/pan/pin/cvv/ssn/
 //   password/token/secret/apiKey/iban/account_number/card_number keys
 //   are stripped and flagged.
-// - 3.6.4: No raw IP persistence — enriched geo stored, raw IP not
+// - 3.6.4: No raw IP persistence - enriched geo stored, raw IP not
 //   present in processed records or aggregates.
-// - 3.6.5: No credential storage in Stat — no API keys in DB, no hashes,
+// - 3.6.5: No credential storage in Stat - no API keys in DB, no hashes,
 //   M2M tokens verified via Auth JWKS only.
 
 use sentin8_stat_server::types::{strip_pii, PII_DENY_LIST};
@@ -97,7 +97,7 @@ fn pii_deny_list_preserves_non_pii() {
 
 #[test]
 fn raw_ip_excluded_from_deny_list() {
-    // "ip" is NOT in the PII deny-list because it's not stored in props —
+    // "ip" is NOT in the PII deny-list because it's not stored in props -
     // it's extracted at ingest, enriched to geo, and discarded.
     // This test verifies "ip" is not in the deny-list (it's handled separately).
     assert!(!PII_DENY_LIST.contains(&"ip"));

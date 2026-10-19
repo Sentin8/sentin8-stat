@@ -108,24 +108,24 @@ impl EventRecord {
 /// Run the full pipeline for one event. Returns `Ok(())` on success.
 /// Run pipeline.
 pub async fn run_pipeline(pool: &PgPool, event: &mut EventRecord) -> Result<(), String> {
-    // Stage 1 — Clean & Validate.
+    // Stage 1 - Clean & Validate.
     stage1_clean(event)?;
 
-    // Stage 2 — Attribution (session logic).
+    // Stage 2 - Attribution (session logic).
     let session_id = stage2_attribute(pool, event).await?;
 
-    // Stage 3 — Identity stitching.
+    // Stage 3 - Identity stitching.
     stage3_stitch(pool, event, session_id).await?;
 
-    // Stage 4 — Enrichment (geo/device — best-effort stubs; MaxMind not bundled).
+    // Stage 4 - Enrichment (geo/device - best-effort stubs; MaxMind not bundled).
     stage4_enrich(event);
 
-    // Stage 5 — Aggregate.
+    // Stage 5 - Aggregate.
     stage5_aggregate(pool, event).await?;
 
-    // Stage 6 — Archive is a periodic sweep, not per-event. Skip here.
+    // Stage 6 - Archive is a periodic sweep, not per-event. Skip here.
 
-    // Stage 7 — Emit pipeline events via outbox.
+    // Stage 7 - Emit pipeline events via outbox.
     stage7_emit(pool, event, session_id).await?;
 
     // Mark the event as processed.
@@ -138,13 +138,13 @@ pub async fn run_pipeline(pool: &PgPool, event: &mut EventRecord) -> Result<(), 
     Ok(())
 }
 
-// ── Stage 6 — Archive ────────────────────────────────────────────────────
+// ── Stage 6 - Archive ────────────────────────────────────────────────────
 //
 // Ages out raw events older than per-property retention (default 30 days),
 // writes gzipped JSONL to Storage at `stat-archive/{orgId}/{envId}/{propertyId}/yyyy/mm/dd/events.jsonl.gz`,
 // then deletes the raw rows after successful archive.
 
-/// Run the archive sweep — call this on a schedule (e.g. daily via Cron).
+/// Run the archive sweep - call this on a schedule (e.g. daily via Cron).
 /// Queries `sentin8_stat_properties` for retention settings, fetches expired events,
 /// writes them to Storage as gzipped JSONL, then deletes the raw rows.
 /// Run archive sweep.
@@ -159,11 +159,11 @@ pub async fn run_archive_sweep(
     // Get all properties with their retention settings. Resolve the org_id
     // from `sys.environments` (stat tables are env-scoped only).
     // Schema-qualified: the stat role's search_path is `stat, public`
-    // Qualified schema names — unqualified cross-schema names fail at
+    // Qualified schema names - unqualified cross-schema names fail at
     // runtime.
     // Same-connection tenant context: the sweep is a platform-plane
     // job with no caller context, and `sys_environments_select` requires
-    // `sentin8_context_initialized()` — set the SYSTEM-env context on the
+    // `sentin8_context_initialized()` - set the SYSTEM-env context on the
     // same connection (its org branch admits every env row).
     let properties = {
         let mut conn = pool
@@ -212,7 +212,7 @@ pub async fn run_archive_sweep(
             continue;
         }
 
-        // Build JSONL content from event columns (gzipped in production —
+        // Build JSONL content from event columns (gzipped in production -
         // here we write plain JSONL since flate2 is not in the worker).
         let _date_str = now.format("%Y/%m/%d").to_string();
         let archive_path = format!(
@@ -244,7 +244,7 @@ pub async fn run_archive_sweep(
             event_ids.push(event.id);
         }
 
-        // Write to Storage via HTTP PUT — flat env-scoped route; the
+        // Write to Storage via HTTP PUT - flat env-scoped route; the
         // tenant env is resolved server-side from the bearer token
         // resolved server-side, never from URL path segments.
         let client = sentin8::middleware::http_client::Sentin8HttpClient::new();
@@ -264,7 +264,7 @@ pub async fn run_archive_sweep(
                 total_archived += events.len() as u64;
 
                 // Mark events as archived (don't delete raw rows until
-                // archive verification — keep for a grace period).
+                // archive verification - keep for a grace period).
                 for id in &event_ids {
                     let _ = sqlx::query!(
                         "UPDATE events SET archived = true, archived_at = now() WHERE id = $1",
@@ -307,7 +307,7 @@ pub struct ArchiveSummary {
     pub errors: Vec<String>,
 }
 
-// ── Stage 1 — Clean & Validate ───────────────────────────────────────────
+// ── Stage 1 - Clean & Validate ───────────────────────────────────────────
 
 fn stage1_clean(event: &mut EventRecord) -> Result<(), String> {
     let now = Utc::now();
@@ -317,7 +317,7 @@ fn stage1_clean(event: &mut EventRecord) -> Result<(), String> {
     if event.timestamp < now - chrono::Duration::hours(24) {
         return Err("event timestamp is older than 24 hours".into());
     }
-    // Props 4 KiB limit (approx — count serialized size).
+    // Props 4 KiB limit (approx - count serialized size).
     while serde_json::to_string(&event.props)
         .map(|s| s.len())
         .unwrap_or(0)
@@ -338,7 +338,7 @@ fn stage1_clean(event: &mut EventRecord) -> Result<(), String> {
     Ok(())
 }
 
-// ── Stage 2 — Attribution (session logic) ────────────────────────────────
+// ── Stage 2 - Attribution (session logic) ────────────────────────────────
 
 async fn stage2_attribute(pool: &PgPool, event: &mut EventRecord) -> Result<Uuid, String> {
     // Look up the last session for this client_id.
@@ -410,7 +410,7 @@ async fn stage2_attribute(pool: &PgPool, event: &mut EventRecord) -> Result<Uuid
     Ok(session_id)
 }
 
-// ── Stage 3 — Identity Stitching ─────────────────────────────────────────
+// ── Stage 3 - Identity Stitching ─────────────────────────────────────────
 
 async fn stage3_stitch(
     pool: &PgPool,
@@ -450,7 +450,7 @@ async fn stage3_stitch(
     Ok(())
 }
 
-// ── Stage 4 — Enrichment ─────────────────────────────────────────────────
+// ── Stage 4 - Enrichment ─────────────────────────────────────────────────
 
 fn stage4_enrich(event: &mut EventRecord) {
     // Best-effort device detection from a user-agent hint in props.
@@ -474,10 +474,10 @@ fn stage4_enrich(event: &mut EventRecord) {
         }
     }
     // Geo-IP enrichment requires a bundled MaxMind database; left as a stub.
-    // Raw IPs are never persisted — the ingest layer does not store them.
+    // Raw IPs are never persisted - the ingest layer does not store them.
 }
 
-// ── Stage 5 — Aggregate ──────────────────────────────────────────────────
+// ── Stage 5 - Aggregate ──────────────────────────────────────────────────
 
 async fn stage5_aggregate(pool: &PgPool, event: &EventRecord) -> Result<(), String> {
     let day = event.timestamp.date_naive();
@@ -616,7 +616,7 @@ async fn upsert_aggregate(
     increment: f64,
 ) -> Result<(), String> {
     let metrics = serde_json::json!({ "count": increment });
-    // Simple INSERT — no ON CONFLICT (the daily aggregate tables don't
+    // Simple INSERT - no ON CONFLICT (the daily aggregate tables don't
     // have unique constraints). Multiple rows per day are summed at
     // query time via the Data API. This is safe because each pipeline
     // run produces one row per event, and the Data API aggregates them.
@@ -646,12 +646,12 @@ fn sha256_hash(_bytes: &[u8]) -> u128 {
     h
 }
 
-// ── Stage 7 — Emit pipeline events via the local DBX outbox ──────────
+// ── Stage 7 - Emit pipeline events via the local DBX outbox ──────────
 
 /// Emit the pipeline-completion event through stat's LOCAL `stat.outbox`
 /// (D3, RS §3): the shell-spawned outbox relay drains it to Bus
 /// `POST /v1/produce` with retry + backoff. The old code INSERTed into a
-/// phantom `inbox` table — stat's schema has no inbox table and no grant —
+/// phantom `inbox` table - stat's schema has no inbox table and no grant -
 /// so every pipeline event silently failed (warn-only) and never reached
 /// Bus.
 async fn stage7_emit(pool: &PgPool, event: &EventRecord, session_id: Uuid) -> Result<(), String> {

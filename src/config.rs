@@ -44,7 +44,7 @@ pub struct StatConfig {
     /// Server/mobile ingest rate limit per M2M client/property (events/minute).
     /// The server rate limit per minute.
     pub server_rate_limit_per_minute: u32,
-    /// Shared Auth client — constructed once so the discovery and JWKS
+    /// Shared Auth client - constructed once so the discovery and JWKS
     /// caches are reused across every request (5-minute TTL each).
     /// Cloning is cheap (the caches live behind an `Arc`).
     /// The auth client.
@@ -66,7 +66,7 @@ impl StatConfig {
                 })
             }),
             // VALKEYDERIVE-1 (group DESIGN.md §3.1): explicit env override,
-            // else the plane-derived URL — the historical `/3` DB number was
+            // else the plane-derived URL - the historical `/3` DB number was
             // inert (GLIDE connects at DB 0; ACLs are the isolation).
             valkey_url: env::var("SENTIN8_STAT_VALKEY_URL")
                 .ok()

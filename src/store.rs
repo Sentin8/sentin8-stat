@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-//! PostgreSQL store for Stat — properties, funnels, accounts, events,
+//! PostgreSQL store for Stat - properties, funnels, accounts, events,
 //! sessions, and the aggregate tables.
 //!
 //! RLS is enforced at the database level; this store sets the tenant
@@ -418,7 +418,7 @@ pub async fn resolve_property(
     pool: &PgPool,
     property_id: Uuid,
 ) -> Result<Option<Uuid>, (axum::http::StatusCode, String)> {
-    // Bypass RLS for the public lookup — the propertyId is a public identifier.
+    // Bypass RLS for the public lookup - the propertyId is a public identifier.
     let row = sqlx::query("SELECT env_id FROM properties WHERE id = $1 AND status = 'active'")
         .bind(property_id)
         .fetch_optional(pool)
@@ -433,7 +433,7 @@ pub async fn resolve_property(
 /// `resolve_property` (the slug is a public identifier).
 /// Resolve property slug.
 ///
-/// RLS: `stat.properties` is FORCE-RLS'd — the lookup MUST run inside a
+/// RLS: `stat.properties` is FORCE-RLS'd - the lookup MUST run inside a
 /// transaction with the SYSTEM env context set (the telemetry ingest path
 /// has no tenant context of its own; the platform seed's properties live
 /// in the system env). Without it the query sees zero rows and every

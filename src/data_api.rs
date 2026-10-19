@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-//! Stat Data API — reports, metrics time-series, sessions, funnels,
+//! Stat Data API - reports, metrics time-series, sessions, funnels,
 //! retention, realtime, and the aggregate-query DSL.
 //!
 //! Requires the `sentin8:stat:data:read` scope.
@@ -25,7 +25,7 @@ fn auth_scope(a: &auth::AuthContext) -> String {
     a.claims.scope.clone()
 }
 
-/// Resolve `property_id` — if the caller didn't supply one, use the first
+/// Resolve `property_id` - if the caller didn't supply one, use the first
 /// active property for the org/env.
 async fn resolve_property_id(
     state: &AppState,
@@ -74,7 +74,7 @@ fn date_range(
     Ok((from, to))
 }
 
-/// `GET /v1/data/reports` — list available report templates.
+/// `GET /v1/data/reports` - list available report templates.
 /// List reports.
 #[utoipa::path(
     get,
@@ -104,7 +104,7 @@ pub async fn list_reports(
     }))
 }
 
-/// `GET /v1/data/reports/{report_id}` — run a pre-canned report.
+/// `GET /v1/data/reports/{report_id}` - run a pre-canned report.
 /// Run report.
 #[utoipa::path(
     get,
@@ -177,7 +177,7 @@ pub struct MetricsQuery {
     pub to: Option<chrono::NaiveDate>,
 }
 
-/// `GET /v1/data/metrics` — server-telemetry time-series from
+/// `GET /v1/data/metrics` - server-telemetry time-series from
 /// `sentin8_stat_aggregate_metrics_daily`.
 /// Handle metrics.
 #[utoipa::path(
@@ -222,7 +222,7 @@ pub async fn metrics(
     Ok(Json(points))
 }
 
-/// `GET /v1/data/traffic` — TLS inter-service traffic matrix.
+/// `GET /v1/data/traffic` - TLS inter-service traffic matrix.
 ///
 /// Returns per-`(from_service, to_service)` summary rows (count, average
 /// latency, errors) aggregated from the `tls.traffic.*` metrics that
@@ -269,7 +269,7 @@ pub async fn traffic(
     Ok(Json(rows))
 }
 
-/// `GET /v1/data/sessions` — session breakdown.
+/// `GET /v1/data/sessions` - session breakdown.
 /// Handle sessions.
 #[utoipa::path(
     get,
@@ -312,7 +312,7 @@ pub async fn sessions(
     Ok(Json(rows))
 }
 
-/// `POST /v1/data/funnels` — define a funnel.
+/// `POST /v1/data/funnels` - define a funnel.
 /// Create funnel.
 #[utoipa::path(
     post,
@@ -357,7 +357,7 @@ pub async fn create_funnel(
     Ok(Json(funnel))
 }
 
-/// `GET /v1/data/funnels/{id}` — funnel report.
+/// `GET /v1/data/funnels/{id}` - funnel report.
 /// Fetch funnel.
 #[utoipa::path(
     get,
@@ -410,7 +410,7 @@ pub struct RetentionQuery {
     pub to: Option<chrono::NaiveDate>,
 }
 
-/// `GET /v1/data/retention` — cohort retention (reads sessions aggregate).
+/// `GET /v1/data/retention` - cohort retention (reads sessions aggregate).
 /// Handle retention.
 #[utoipa::path(
     get,
@@ -454,7 +454,7 @@ pub async fn retention(
     Ok(Json(serde_json::json!({ "cohort": rows })))
 }
 
-/// `GET /v1/data/realtime` — real-time active users (last 5 min, in-memory).
+/// `GET /v1/data/realtime` - real-time active users (last 5 min, in-memory).
 ///
 /// Uses a Valkey sorted-set counter keyed by minute.
 /// Handle realtime.
@@ -520,7 +520,7 @@ const ALLOWED_TABLES: &[&str] = &[
     "sentin8_stat_aggregate_metrics_daily",
 ];
 
-/// `POST /v1/data/query` — arbitrary aggregate query (JSON DSL, aggregates only).
+/// `POST /v1/data/query` - arbitrary aggregate query (JSON DSL, aggregates only).
 /// Handle query.
 #[utoipa::path(
     post,

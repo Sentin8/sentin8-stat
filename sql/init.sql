@@ -3,7 +3,7 @@
 -- SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 -- SPDX-License-Identifier: Apache-2.0
 
--- Sentin8:Stat — standalone analytics and telemetry collection service.
+-- Sentin8:Stat - standalone analytics and telemetry collection service.
 -- References: design/sentin8-stat-technical-design.md
 -- RLS helpers (sentin8_context_initialized, sentin8_bypass_rls, sentin8_current_env_id,
 -- sentin8_current_env_id) are defined in the platform migration SQL.
@@ -14,7 +14,7 @@
 -- DBX (architecture-principles §6.8): the shared `sentin8.audit_events` table
 -- is RETIRED. The canonical audit trail is `sys.audit_events`, owned by
 -- Sentin8:Sys and ingested via `POST /v1/audit` (sys design §6.10). Stat keeps
--- analytics only — Stat's embedded worker consumes `sentin8:sys:audit:recorded`
+-- analytics only - Stat's embedded worker consumes `sentin8:sys:audit:recorded`
 -- from the bus
 -- and aggregates into its own tables (DBX-STAT-1).
 
@@ -50,7 +50,7 @@ CREATE POLICY stat_properties_update ON stat.properties FOR UPDATE USING (sentin
 DROP POLICY IF EXISTS stat_properties_delete ON stat.properties;
 CREATE POLICY stat_properties_delete ON stat.properties FOR DELETE USING (sentin8_context_initialized() AND (sentin8_bypass_rls() OR (env_id = sentin8_current_env_id())));
 
--- Policy stat-emit boot read — RETIRED (SBI-STAT-2, architecture-
+-- Policy stat-emit boot read - RETIRED (SBI-STAT-2, architecture-
 -- principles §6.6a): emitters identify by `property_slug` (SBI-STAT-1)
 -- and stat resolves slug → property server-side at ingest. No non-stat
 -- service holds grants on stat.* anymore.
@@ -113,7 +113,7 @@ CREATE INDEX IF NOT EXISTS idx_stat_events_archive
     ON stat.events (property_id, created_at)
     WHERE archived = false;
 
--- RLS on stat.events — partitioned tables inherit RLS from parent.
+-- RLS on stat.events - partitioned tables inherit RLS from parent.
 ALTER TABLE stat.events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE stat.events FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS stat_events_select ON stat.events;
@@ -356,7 +356,7 @@ CREATE POLICY stat_agg_traffic_update ON stat.aggregate_traffic_source_daily FOR
 -- required before the rule evaluates). metric_name vocabulary:
 -- 'events.count' (aggregate_events_daily), 'conversions.count'
 -- (aggregate_conversions_daily), or 'metric:{name}'
--- (aggregate_metrics_daily.value) — validated at create time against the
+-- (aggregate_metrics_daily.value) - validated at create time against the
 -- aggregates (400 on unknown).
 CREATE TABLE IF NOT EXISTS stat.alert_rules (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -431,7 +431,7 @@ DROP POLICY IF EXISTS stat_accounts_delete ON stat.accounts;
 CREATE POLICY stat_accounts_delete ON stat.accounts FOR DELETE USING (sentin8_context_initialized() AND (sentin8_bypass_rls() OR (env_id = sentin8_current_env_id())));
 
 -- ──────────────────────────────────────────────────────────────────────────
--- Story 3.4b.1 — Platform bootstrap creates one sentin8_stat_property per Sentin8 service.
+-- Story 3.4b.1 - Platform bootstrap creates one sentin8_stat_property per Sentin8 service.
 -- Uses System org/env (00000000-0000-0000-0000-000000000001 / 00000000-0000-0000-0000-000000000002).
 -- Each property gets a slug matching the service name (auth, app, db, storage,
 -- bus, sys, cron, func, flow, bff).
@@ -440,7 +440,7 @@ CREATE POLICY stat_accounts_delete ON stat.accounts FOR DELETE USING (sentin8_co
 --
 -- NOTE: this seed covers the platform services' own properties. Every
 -- other service's telemetry property is declared in its repo's
--- `service-registration.json` (`telemetry_property` — TELESEED-1,
+-- `service-registration.json` (`telemetry_property` - TELESEED-1,
 -- design `design/sentin8-provisioned-rls-and-telemetry-design.md`
 -- §2.2) and seeded into this table on the platform DB by
 -- `sentin8-cli vertical init`/`enroll` (a vertical's own init SQL runs
@@ -618,7 +618,7 @@ CREATE POLICY audit_journal_dml ON stat.audit_journal
     WITH CHECK (sentin8_context_initialized() AND env_id = sentin8_current_env_id());
 
 
--- ── Schema grants (service-owned — the 2026-10-03 ownership pass) ─────
+-- ── Schema grants (service-owned - the 2026-10-03 ownership pass) ─────
 -- This service's own schema: USAGE for its role (platform.sql no longer
 -- seeds per-service USAGE; the service declares it here).
 GRANT USAGE ON SCHEMA stat TO sentin8_stat_service;

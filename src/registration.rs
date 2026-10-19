@@ -21,7 +21,7 @@ const PG_ROLES: &[PgRole] = &[PgRole {
     bypass_rls: false,
     database: "sentin8",
     // The embedded worker's archive sweep resolves org_id from
-    // `sys.environments` for its archive paths (worker/pipeline.rs —
+    // `sys.environments` for its archive paths (worker/pipeline.rs -
     // platform-plane SYSTEM-env context read, SELECT-only, schema-
     // qualified). Declared explicitly; enroll's phase-2 grants pass
     // applies it (registration README §6).
@@ -37,7 +37,7 @@ const PG_ROLES: &[PgRole] = &[PgRole {
 const ADMIN_SCOPES: &[AdminScope] = &[
     // Role vocabulary: admin API gates on
     // `sentin8:stat:data:read`|`sentin8:stat:admin` (auth.rs require_admin), Data API on
-    // `sentin8:stat:data:read`. (`sentin8:stat:measure` is ingest-only — granted to M2M
+    // `sentin8:stat:data:read`. (`sentin8:stat:measure` is ingest-only - granted to M2M
     // clients, never to admin roles; `sentin8:stat:read` is accepted by no handler.)
     AdminScope::Typed {
         role: "sentin8:stat:admin",
@@ -115,12 +115,12 @@ fn openapi_spec() -> serde_json::Value {
 
 /// Default declarative policy sets (Sentin8:Policy design /):
 /// action-granular scope permits over the LIVE effective scope set. Seeded
-/// `origin='platform'`, `mode='enforced'` ( — step 5 is
+/// `origin='platform'`, `mode='enforced'` ( - step 5 is
 /// the only gate; shadow is the emergency one-UPDATE rollback lever only).
 const POLICIES: &[PolicySetDecl] = &[
     PolicySetDecl {
         policy_set_name: "scope-mirror",
-        description: "Action-granular scope permits for sentin8:stat over the LIVE effective scope set. Enforced — step 5 is the only gate.",
+        description: "Action-granular scope permits for sentin8:stat over the LIVE effective scope set. Enforced - step 5 is the only gate.",
         policies: "permit(principal, action == Action::\"sentin8:stat:data:read\", resource) when { principal.scopes.contains(\"sentin8:stat:data:read\") };\npermit(principal, action == Action::\"sentin8:stat:data:read\", resource) when { principal.scopes.contains(\"sentin8:stat:admin\") };\npermit(principal, action == Action::\"sentin8:stat:measure\", resource) when { principal.scopes.contains(\"sentin8:stat:measure\") };",
         schema: None,
         mode: "enforced",
@@ -128,7 +128,7 @@ const POLICIES: &[PolicySetDecl] = &[
     },
 ];
 
-/// Default ReBAC relation tuples — none declared by this
+/// Default ReBAC relation tuples - none declared by this
 /// service today; env admins author their own graph via the admin API.
 const RELATIONS: &[RelationDecl] = &[];
 
@@ -138,7 +138,7 @@ const RELATIONS: &[RelationDecl] = &[];
 /// With `--section=<name>`, outputs only that section as a standalone JSON value.
 /// M2M DCR workload grants (self-registration ): this
 /// service's own `certless:<workload>` rows, upserted by `vertical enroll`.
-/// The static auth seed is retired — this declaration is the ONLY
+/// The static auth seed is retired - this declaration is the ONLY
 /// provisioning path ( "DCR is dynamic").
 /// Cover BOTH the full-identity `-policy` spelling (policy_bus_client) and
 /// the bare `{short}-policy` spelling (stat_emit); the gate's superset
@@ -168,7 +168,7 @@ const M2M_GRANTS: &[sentin8::registration::M2mGrant] = &[
         workload: "stat-policy",
         scopes: &["sentin8:bus:consume", "sentin8:stat:measure"],
     },
-    // TLS-RLS-4 (design/sentin8-vertical-data-plane-contract.md §VDC.7): the database-free HostContextResolver’s resolve workload — cache miss calls Sys `GET /v1/resolve/hostname`.
+    // TLS-RLS-4 (design/sentin8-vertical-data-plane-contract.md §VDC.7): the database-free HostContextResolver’s resolve workload - cache miss calls Sys `GET /v1/resolve/hostname`.
     sentin8::registration::M2mGrant {
         workload: "sentin8-stat-tls",
         scopes: &["sentin8:sys:instances:read"],

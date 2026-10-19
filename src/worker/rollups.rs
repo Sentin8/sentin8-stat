@@ -3,10 +3,10 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-//! Multi-granularity rollup job — aggregates from `stat.events` daily
+//! Multi-granularity rollup job - aggregates from `stat.events` daily
 //! aggregates (`aggregate_metrics_daily`) into `stat.rollups` at the
 //! implemented granularities: hour, day, week, month, year (minute
-//! rollups stay Valkey-only — see worker/valkey_sub.rs).
+//! rollups stay Valkey-only - see worker/valkey_sub.rs).
 //!
 //! Runs as a periodic background task inside the stat service (alongside
 //! the Bus consume loop and the alert evaluator). Every 60 seconds it
@@ -15,10 +15,10 @@
 //! raw events.
 //!
 //! Rollup hierarchy:
-//!   minute  (5-minute buckets, TTL 7 days — hot, for real-time charts)
+//!   minute  (5-minute buckets, TTL 7 days - hot, for real-time charts)
 //!   hour    (rolled up from minute / directly from *_daily)
-//!   day     (rolled up from *_daily — the authoritative source)
-//!   week    (rolled up from day — ISO week starting Monday)
+//!   day     (rolled up from *_daily - the authoritative source)
+//!   week    (rolled up from day - ISO week starting Monday)
 //!   month   (rolled up from day)
 //!   year    (rolled up from month)
 //!
@@ -34,10 +34,10 @@ use chrono::Timelike;
 use sentin8::bus::client::BusClient;
 use sqlx::{PgPool, Row};
 
-/// Entry point — spawn the periodic rollup loop. Runs DB-level rollups
+/// Entry point - spawn the periodic rollup loop. Runs DB-level rollups
 /// (hour/day/week/month/year) into `sentin8_stat_rollups`.
 /// Minute-level metrics are kept only in Valkey (see `valkey_sub.rs`),
-/// not in the database — they're high-volume and ephemeral.
+/// not in the database - they're high-volume and ephemeral.
 pub async fn run_rollup_loop(pool: PgPool, bus: BusClient) {
     let mut tick = tokio::time::interval(std::time::Duration::from_secs(60));
     tick.tick().await; // skip first immediate tick
@@ -49,9 +49,9 @@ pub async fn run_rollup_loop(pool: PgPool, bus: BusClient) {
     }
 }
 
-/// One rollup pass — aggregate `sentin8_stat_aggregate_metrics_daily` into
+/// One rollup pass - aggregate `sentin8_stat_aggregate_metrics_daily` into
 /// `sentin8_stat_rollups` at hour/day/week/month/year granularities.
-/// Minute-level is NOT written to the DB — it lives only in Valkey
+/// Minute-level is NOT written to the DB - it lives only in Valkey
 /// (published by `valkey_sub.rs` every 60s to `stat:rollups:minute`).
 ///
 /// Every updated day-bucket ALSO emits a `sentin8:stat:aggregate:updated`
@@ -64,7 +64,7 @@ async fn run_rollup_pass(pool: &PgPool, bus: &BusClient) -> Result<(), String> {
     // ── 1. Hourly rollup (last 48 hours) ──
     rollup_hour(pool).await?;
 
-    // ── 2. Daily rollup (last 400 days) — emits the aggregate events ──
+    // ── 2. Daily rollup (last 400 days) - emits the aggregate events ──
     rollup_day(pool, bus).await?;
 
     // ── 3. Weekly rollup (last 2 years) ──
@@ -120,7 +120,7 @@ where
 }
 
 /// Upsert ONE metrics day-aggregate into `stat.rollups` at day
-/// granularity — the day-rollup computation shared by the background pass
+/// granularity - the day-rollup computation shared by the background pass
 /// (`rollup_day`) and the admin reaggregate endpoint
 /// (`reaggregate_property`), so the row shape (dimensions
 /// `{metric_name, value_type}`, metrics `{value}`, bucket = UTC midnight)
@@ -157,7 +157,7 @@ where
 }
 
 /// Roll up metrics_daily into sentin8_stat_rollups at day granularity.
-/// This is the base rollup — all other granularities derive from this.
+/// This is the base rollup - all other granularities derive from this.
 async fn rollup_day(pool: &PgPool, bus: &BusClient) -> Result<(), String> {
     let rows = sqlx::query(
         r#"SELECT env_id, property_id, day, metric_name,
@@ -189,7 +189,7 @@ async fn rollup_day(pool: &PgPool, bus: &BusClient) -> Result<(), String> {
         )
         .await?;
         // APP-1: emit the payload-complete aggregate event for the updated
-        // day-bucket (fire-and-forget — a failed produce is retried by the
+        // day-bucket (fire-and-forget - a failed produce is retried by the
         // next pass because the DB upsert is idempotent and the query re-reads
         // the bucket).
         emit_aggregate_updated(
@@ -211,7 +211,7 @@ async fn rollup_day(pool: &PgPool, bus: &BusClient) -> Result<(), String> {
 /// stream family. The payload mirrors
 /// `sentin8_stat_server::worker::AggregateUpdatedEvent` (the app
 /// listener's parser): property_id, aggregate, window, bucket_start,
-/// value, dimensions. Best-effort — a failed produce degrades to the
+/// value, dimensions. Best-effort - a failed produce degrades to the
 /// next pass re-emitting the bucket.
 async fn emit_aggregate_updated(
     bus: &BusClient,
@@ -457,7 +457,7 @@ pub struct ReaggregateWindow {
 
 /// Parse and normalize a reaggregate window.
 ///
-/// `from`/`to` accept RFC 3339 timestamps (with or without an offset —
+/// `from`/`to` accept RFC 3339 timestamps (with or without an offset -
 /// naive strings are interpreted as UTC). When both are `None` the window
 /// defaults to the last 30 days ending now. When only one bound is given,
 /// the other defaults around it (`to` = now / `from` = `to` − 30 days).
@@ -501,7 +501,7 @@ pub fn parse_reaggregate_window(
     let days = (to_day - from_day).num_days() + 1;
     if days > REAGGREGATE_MAX_WINDOW_DAYS {
         return Err(format!(
-            "window spans {days} day buckets — max {}",
+            "window spans {days} day buckets - max {}",
             REAGGREGATE_MAX_WINDOW_DAYS
         ));
     }
@@ -514,7 +514,7 @@ pub fn parse_reaggregate_window(
 }
 
 /// Reject a window reaching past the property's raw retention horizon
-/// (stat design §4.3.6: the archive sweep is the source-of-truth boundary —
+/// (stat design §4.3.6: the archive sweep is the source-of-truth boundary -
 /// raw events older than `retention_days` live only in Storage archives,
 /// which this endpoint does not replay).
 ///
@@ -545,21 +545,21 @@ pub fn check_window_horizon(
 /// Rebuild the day-granularity `metrics` rollups for one property over the
 /// given window, from the raw events still present in `stat.events`.
 ///
-/// One explicit transaction: context-set (the property's env, REQUIRED —
+/// One explicit transaction: context-set (the property's env, REQUIRED -
 /// `set_config(..., true)` is transaction-local and the RLS policies admit
 /// only a matching `app.env_id`) → property existence check → DELETE of the
 /// window's `metrics`-kind day buckets → set-based recomputation from
-/// `stat.events` (counter = SUM, gauge = last-write — mirroring the
+/// `stat.events` (counter = SUM, gauge = last-write - mirroring the
 /// pipeline's `upsert_metric` semantics) → commit. The delete-then-recompute
 /// pair is one unit so a mid-rebuild failure leaves the previous rollups
 /// intact.
 ///
-/// Callers must run [`check_window_horizon`] first — this helper does NOT
+/// Callers must run [`check_window_horizon`] first - this helper does NOT
 /// re-check retention (the admin handler owns the archive-boundary
 /// rejection, stat README §7).
 ///
 /// # Errors
-/// Property not found, SQL failure, or commit failure — message strings are
+/// Property not found, SQL failure, or commit failure - message strings are
 /// caller-ready for the 400/500 mapping.
 pub async fn reaggregate_property(
     pool: &PgPool,
@@ -571,7 +571,7 @@ pub async fn reaggregate_property(
     // Tenant context on the SAME transaction as every statement below
     // (stat DESIGN §5). The archive sweep sets the SYSTEM env for its
     // cross-property query; here the caller resolved one property, so the
-    // context is the property's env — the RLS policies then bound every
+    // context is the property's env - the RLS policies then bound every
     // read/write to that env without a role-level escape hatch.
     let prop = sqlx::query("SELECT env_id FROM properties WHERE id = $1 LIMIT 1")
         .bind(property_id)
@@ -586,7 +586,7 @@ pub async fn reaggregate_property(
         .await;
 
     // Drop the window's existing day-`metrics` buckets, then recompute
-    // them from raw events in the same transaction — the rollup table is
+    // them from raw events in the same transaction - the rollup table is
     // never left partially rebuilt.
     sqlx::query(
         r#"DELETE FROM rollups
@@ -603,11 +603,11 @@ pub async fn reaggregate_property(
     .await
     .map_err(|e| format!("delete window buckets: {e}"))?;
 
-    // Set-based recomputation from the raw log — one pass, no per-row
+    // Set-based recomputation from the raw log - one pass, no per-row
     // round trips (pool is capped at 3 connections; a per-bucket loop
     // would serialize thousands of round trips). Counter metrics SUM all
     // raw metric entries; gauge metrics keep the LAST raw value per
-    // (metric_name, dimensions) — mirroring the pipeline's `upsert_metric`
+    // (metric_name, dimensions) - mirroring the pipeline's `upsert_metric`
     // counter=SUM / gauge=last-write split.
     let rows = sqlx::query(
         r#"WITH raw AS (
@@ -638,7 +638,7 @@ pub async fn reaggregate_property(
     .map_err(|e| format!("raw metric scan: {e}"))?;
 
     // Fold in Rust: counters SUM; gauges keep the most recent value per
-    // dimension set. Key = (day, metric_name, dims_hash) — matching the
+    // dimension set. Key = (day, metric_name, dims_hash) - matching the
     // daily-aggregate uniqueness so rebuilt buckets are replayable.
     use std::collections::HashMap;
     let mut counters: HashMap<(chrono::NaiveDate, String, String), (serde_json::Value, f64)> =

@@ -5,7 +5,7 @@
 
 //! # stat-contracts
 //!
-//! Rust types for the Stat analytics and telemetry service — the event
+//! Rust types for the Stat analytics and telemetry service - the event
 //! envelope and property definitions shared by producers and the server.
 
 #![deny(missing_docs)]
@@ -37,7 +37,7 @@ pub struct EventEnvelope {
     pub props: serde_json::Value,
 }
 
-/// An analytics property — the measurement scope events report against.
+/// An analytics property - the measurement scope events report against.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Property {
     /// Property identity.
@@ -50,7 +50,7 @@ pub struct Property {
     pub name: String,
 }
 
-// Serde roundtrip tests — wire-format stability.
+// Serde roundtrip tests - wire-format stability.
 
 #[cfg(test)]
 mod tests {

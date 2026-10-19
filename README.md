@@ -1,4 +1,4 @@
-# Design Doc: Sentin8:Stat — Metrics & Analytics Service
+# Design Doc: Sentin8:Stat - Metrics & Analytics Service
 
 ## 1. Summary
 
@@ -14,20 +14,20 @@ events back onto the Bus for dashboard consumers.
 ## 2. Motivation
 
 - **One metrics plane.** Services, verticals, and apps all emit to the
-  same property/slug vocabulary — spend, traffic, conversions, and AI
+  same property/slug vocabulary - spend, traffic, conversions, and AI
   token usage are comparable across the platform.
 - **M2M-only ingest.** Measurement ingestion is machine traffic
   (service workloads claiming `sentin8:stat:measure` at DCR); user
-  roles never gain ingest — the user/M2M boundary stays clean.
+  roles never gain ingest - the user/M2M boundary stays clean.
 - **PII never enters analytics.** The ingest deny-list strips
   credential-ish keys from any persisted payload (email, pan, pin,
-  token…) and flags stripped traces — metrics are aggregates, not
+  token…) and flags stripped traces - metrics are aggregates, not
   personal data.
 - **Cheap fire-and-forget.** Producers must never block on analytics;
   a Stat outage costs dashboards, not the business path.
 - **One process for ingest + aggregation.** The worker pipeline (7-stage
   transform, rollups, alerts, archive) runs as background tasks inside
-  the same service — one identity, one deployment unit, no separate
+  the same service - one identity, one deployment unit, no separate
   worker binary or fleet to supervise.
 
 ## 3. Architecture & High-Level Design
@@ -63,14 +63,14 @@ graph TD
     Q --> I
 ```
 
-- **Ingest** — collect endpoint accepting a single envelope or a
+- **Ingest** - collect endpoint accepting a single envelope or a
   batch; pixel fallback for browser beacons; shorthand endpoints for
   common counters; every path authenticates M2M, rate-limits per
   workload, strips PII, and dedupes on the envelope's idempotency key.
-- **Slug resolution** — the envelope may carry `property_slug`
+- **Slug resolution** - the envelope may carry `property_slug`
   instead of an id; Stat resolves it server-side (the shared client
   never pools property ids).
-- **Embedded worker pipeline** — a Bus SSE consumer (group `stat`)
+- **Embedded worker pipeline** - a Bus SSE consumer (group `stat`)
   runs the 7-stage pipeline (clean → attribute → stitch → enrich →
   aggregate → emit), the multi-granularity rollup loop (minute → year;
   each updated day-bucket emits `sentin8:stat:aggregate:updated` on
@@ -80,21 +80,21 @@ graph TD
   the hourly archive sweep to Storage, and the Valkey pub/sub subscriber
   that republishes `stat:metrics:{tls,log}` as
   `stat:rollups:{minute,hour,day}` for Dash/BFF/Captain consumers.
-- **Shield** — the admin surface is gated by the enforced scope-mirror
+- **Shield** - the admin surface is gated by the enforced scope-mirror
   set; decisions evaluate authenticated callers only.
 
 ## 4. Key Traits and Data Structures
 
-- **`EventEnvelope`** — the ingest contract: property slug/id, metric
+- **`EventEnvelope`** - the ingest contract: property slug/id, metric
   name (e.g. `ai.token.input`, `stat:metrics:tls` traffic counters),
   value, dimensions (env/feature/model), timestamp, idempotency key.
-- **`CollectBody`** — single envelope or batch (untagged serde).
-- **Property / dimension records** — the metric vocabulary: slug,
+- **`CollectBody`** - single envelope or batch (untagged serde).
+- **Property / dimension records** - the metric vocabulary: slug,
   name, allowed dimensions; the admin API manages them
   (`sentin8:stat:admin` scope).
-- **Aggregate tables** — precomputed rollups (counts, funnels,
+- **Aggregate tables** - precomputed rollups (counts, funnels,
   sessions) the data API queries.
-- **PII deny-list** — mirrors the AI safety filter's keys; stripping
+- **PII deny-list** - mirrors the AI safety filter's keys; stripping
   is top-level key removal with a flagged result.
 
 ## 5. Rationale, Trade-offs, and Alternatives
@@ -109,7 +109,7 @@ graph TD
   rate-limited per client IP with bot-protection semantics.
 - **PII deny-list at ingest.** Payload keys matching the deny-list
   (`email`, `pan`, `pin`, `ssn`, `token`…) are stripped before
-  persistence — mirrors the AI safety filter so both planes share one
+  persistence - mirrors the AI safety filter so both planes share one
   vocabulary. Metrics that need identities belong in domain tables,
   not analytics.
 - **Idempotency-key dedupe.** At-least-once producers (Bus relays,
@@ -123,7 +123,7 @@ graph TD
   (pipeline + rollups + alerts) is CPU-bound but bursty; background
   tasks inside the same process remove the second binary, catalog
   entry, M2M workload, and health port without changing any
-  interaction pattern — the ingest path still returns after
+  interaction pattern - the ingest path still returns after
   persistence, and the pipeline runs behind it.
 - **Fire-and-forget ingestion path.** A Stat outage never blocks
   inference/business calls (the trace row already carries the spend);
@@ -150,7 +150,7 @@ graph TD
   - PII deny-list stripping runs before any persistence; stripped
     payloads are flagged so dashboards can distinguish.
   - RLS is enforced at the database level; the store sets the tenant
-    context via `sentin8_set_tenant_context` before reads/writes —
+    context via `sentin8_set_tenant_context` before reads/writes -
     same connection, same transaction.
   - Slug resolution happens server-side; the ingest never trusts a
     caller-provided `property_id` when a slug is present.
@@ -176,13 +176,13 @@ graph TD
   (the platform-level answer).
 - Alert rules are resolved: per-property custom rules live in `stat.alert_rules`
   (admin CRUD under `/v1/admin/properties/{id}/alert-rules`) with two rule
-  types — `threshold` (metric value vs comparator/threshold) and `anomaly`
+  types - `threshold` (metric value vs comparator/threshold) and `anomaly`
   (moving-average deviation factor over the past `window_hours` of daily
-  buckets) — evaluated each 60s pass by the embedded worker and fired onto the
+  buckets) - evaluated each 60s pass by the embedded worker and fired onto the
   existing alert → Post path (`sentin8:stat:alert:rule_triggered`, same
   envelope as the curated rules plus `rule_id`/`rule_type`); the curated
   spike/drop rules remain as the platform-telemetry plane.
-- Rule edit/update (PUT) is a future refinement — today rules are created,
+- Rule edit/update (PUT) is a future refinement - today rules are created,
   listed, and deleted (disable via a new rule or delete + recreate).
 
 ---

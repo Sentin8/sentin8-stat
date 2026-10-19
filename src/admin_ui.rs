@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-//! Sentin8:Stat Admin UI handlers — RFW definitions.
+//! Sentin8:Stat Admin UI handlers - RFW definitions.
 //! Served from `GET /v1/admin/ui/{page}`, rendered by Sentin8:Dash at runtime.
 
 use crate::handlers::AppState;
@@ -148,7 +148,7 @@ pub async fn get_admin_ui(
                 "/metrics",
             ))
             .build(),
-        // ── Policy Studio — shared page
+        // ── Policy Studio - shared page
         // constructors; the guard guarantees `Some` ( dispatch).
         p if sentin8::rfw::policy_page("sentin8:stat", p).is_some() => {
             sentin8::rfw::policy_page("sentin8:stat", p)
@@ -167,7 +167,7 @@ pub async fn get_admin_ui(
     ))
 }
 
-/// `GET /v1/admin/{resource}` — returns a JSON array of admin data rows.
+/// `GET /v1/admin/{resource}` - returns a JSON array of admin data rows.
 /// Fetch admin data.
 #[utoipa::path(
     get,

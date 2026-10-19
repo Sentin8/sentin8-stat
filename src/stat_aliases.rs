@@ -9,7 +9,7 @@ use crate::handlers::AppState;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 
-/// `POST /v1/admin/properties/{id}/delete` — RFW alias of
+/// `POST /v1/admin/properties/{id}/delete` - RFW alias of
 /// `DELETE /v1/admin/properties/{id}`.
 #[utoipa::path(
     post,

@@ -33,7 +33,7 @@ pub enum StatError {
     Token(String),
 }
 
-/// The Stat client — **certificate-presenting** (, auth DESIGN
+/// The Stat client - **certificate-presenting** (, auth DESIGN
 /// §4.3f): every call presents the workload's Acme-issued client
 /// certificate in the TLS handshake; Stat's TLS layer authenticates it
 /// and the registry map authorizes the scopes. No bearer token exists
@@ -52,7 +52,7 @@ impl Client {
     ///
     /// # Errors
     /// [`StatError::Http`] when the mTLS transport cannot be built from
-    /// the identity paths — a missing certificate identity is a
+    /// the identity paths - a missing certificate identity is a
     /// provisioning state, surfaced loud.
     pub fn with_workload_identity(
         base_url: impl Into<String>,
@@ -72,7 +72,7 @@ impl Client {
         })
     }
 
-    /// Test-only plain-HTTP constructor — talks to a local test server
+    /// Test-only plain-HTTP constructor - talks to a local test server
     /// with no TLS/identity.
     #[cfg(test)]
     pub fn plain(base_url: impl Into<String>, property_id: Uuid) -> Self {
@@ -83,7 +83,7 @@ impl Client {
         }
     }
 
-    /// Plain-HTTP DEV FALLBACK constructor — no TLS identity (Stat
+    /// Plain-HTTP DEV FALLBACK constructor - no TLS identity (Stat
     /// rejects it loudly at the authorization gate). Use ONLY for the
     /// fail-soft boot/test path when the workload certificate cannot be
     /// minted yet; never for production paths.
@@ -95,7 +95,7 @@ impl Client {
         }
     }
 
-    /// Wrap a pre-built cert-presenting transport (— for
+    /// Wrap a pre-built cert-presenting transport (- for
     /// callers that hold a shared per-process transport (app's telemetry
     /// listener constructs a client per event against one transport).
     pub fn from_transport(
@@ -114,13 +114,13 @@ impl Client {
         format!("{}{}", self.base_url, path)
     }
 
-    /// `POST /v1/m/collect` — send a batch of event envelopes.
+    /// `POST /v1/m/collect` - send a batch of event envelopes.
     pub async fn collect(&self, events: &[EventEnvelope]) -> Result<(), StatError> {
         let body = serde_json::to_value(events).map_err(|e| StatError::Decode(e.to_string()))?;
         self.post("/v1/m/collect", body).await
     }
 
-    /// `POST /v1/m/pageview` — page-view shorthand.
+    /// `POST /v1/m/pageview` - page-view shorthand.
     pub async fn pageview(
         &self,
         client_id: &str,
@@ -138,7 +138,7 @@ impl Client {
         self.post("/v1/m/pageview", body).await
     }
 
-    /// `POST /v1/m/event` — named-event shorthand.
+    /// `POST /v1/m/event` - named-event shorthand.
     pub async fn event(
         &self,
         client_id: &str,
@@ -154,7 +154,7 @@ impl Client {
         self.post("/v1/m/event", body).await
     }
 
-    /// `POST /v1/m/conversion` — conversion shorthand.
+    /// `POST /v1/m/conversion` - conversion shorthand.
     pub async fn conversion(
         &self,
         client_id: &str,
@@ -171,7 +171,7 @@ impl Client {
         self.post("/v1/m/conversion", body).await
     }
 
-    /// `POST /v1/m/metric` — server-telemetry shorthand.
+    /// `POST /v1/m/metric` - server-telemetry shorthand.
     ///
     /// `name` is the metric batch source label (e.g. `auth.daily_snapshot`);
     /// `metrics` is the numeric map (e.g. `{"users.count": 42}`);
@@ -211,9 +211,9 @@ impl Client {
     /// Use this for server-telemetry metrics where the caller must not block
     /// on Stat (e.g. a request handler emitting a per-request counter). The
     /// spawned task logs failures via `tracing` but never propagates errors
-    /// to the caller — this is the definition of fire-and-forget.
+    /// to the caller - this is the definition of fire-and-forget.
     ///
-    /// The caller does not need to be `#[tokio::main]` — `tokio::spawn`
+    /// The caller does not need to be `#[tokio::main]` - `tokio::spawn`
     /// works from any async context that is already running on the tokio
     /// runtime (which is the case for every Sentin8 service's axum handler).
     pub fn metric_fire_and_forget(
@@ -380,7 +380,7 @@ impl EventEnvelope {
 mod tests {
     use super::*;
 
-    /// Install the Graviola PQ crypto provider once — reqwest panics with
+    /// Install the Graviola PQ crypto provider once - reqwest panics with
     /// "No provider set" when a client is built without one.
     fn install_provider() {
         use std::sync::Once;

@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-//! Stat ingest layer — collect, pixel fallback, shorthand endpoints, M2M
+//! Stat ingest layer - collect, pixel fallback, shorthand endpoints, M2M
 //! auth, rate limiting, PII stripping, dedupe, Bus enqueue.
 
 use axum::{
@@ -84,7 +84,7 @@ async fn resolve_property(
 }
 
 /// : when the envelope carries `property_slug`, resolve it
-/// server-side and overwrite `property_id` (server telemetry path —
+/// server-side and overwrite `property_id` (server telemetry path -
 /// emitters never need a UUID lookup at boot). `property_id`-only callers
 /// (web SDK) are unchanged. A slug with no active property row → 404,
 /// exactly like an unknown property id.
@@ -155,7 +155,7 @@ async fn ingest_one(
 
     // Auth: M2M token (server/mobile) OR user token (web) OR unauthenticated.
     let auth_ctx = auth::verify_token_opt(&state.config, headers).await?;
-    // ── Sentin8:Policy : evaluate authenticated callers only —
+    // ── Sentin8:Policy : evaluate authenticated callers only -
     // the unauthenticated ingest path is unchanged (existing policy).
     if let Some(a) = &auth_ctx {
         crate::policy::require_policy(
@@ -178,7 +178,7 @@ async fn ingest_one(
         None => format!("client:{}", envelope.client_id),
     };
     if !rate_limit(state, &rl_key, limit).await {
-        // Retry-After (stat DESIGN §4): the bucket window is one minute —
+        // Retry-After (stat DESIGN §4): the bucket window is one minute -
         // consumers back off deterministically instead of hammering.
         // The shared `(StatusCode, String)` error carries the 60s bucket
         // window in the message; a full header-carrying response type is
@@ -214,7 +214,7 @@ async fn ingest_one(
     Ok(())
 }
 
-/// `POST /v1/m/collect` — batch ingest (max 100 events / 1 MiB).
+/// `POST /v1/m/collect` - batch ingest (max 100 events / 1 MiB).
 /// Handle collect.
 #[utoipa::path(
     post,
@@ -256,7 +256,7 @@ pub async fn collect(
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// `GET /v1/m/collect` — pixel fallback. Query-string encoded single event,
+/// `GET /v1/m/collect` - pixel fallback. Query-string encoded single event,
 /// returns a 1x1 transparent GIF.
 #[derive(Debug, Deserialize)]
 /// The pixelquery type.
@@ -331,7 +331,7 @@ pub async fn pixel(
         props: serde_json::Value::Object(serde_json::Map::new()),
         props_pii_stripped: false,
     };
-    // Best-effort ingest — pixel must return 200 even if ingest fails.
+    // Best-effort ingest - pixel must return 200 even if ingest fails.
     let _ = ingest_one(&state, &headers, envelope).await;
     let resp = Response::builder()
         .status(StatusCode::OK)
@@ -490,7 +490,7 @@ pub async fn conversion(
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// `POST /v1/m/metric` — server-only telemetry (requires `sentin8:stat:measure`).
+/// `POST /v1/m/metric` - server-only telemetry (requires `sentin8:stat:measure`).
 /// Handle metric.
 #[utoipa::path(
     post,
@@ -539,7 +539,7 @@ pub async fn metric(
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// `POST /v1/m/batch` — server-side batch (M2M required, higher limits).
+/// `POST /v1/m/batch` - server-side batch (M2M required, higher limits).
 /// Handle batch.
 #[utoipa::path(
     post,

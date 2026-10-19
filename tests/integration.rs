@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-// Integration tests for Stat — Story 3.1.19
+// Integration tests for Stat - Story 3.1.19
 //
 // Tests ingest validation, PII stripping, dedupe logic, and event types.
 // These are unit tests for pure functions; full pipeline tests require

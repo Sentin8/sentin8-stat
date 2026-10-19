@@ -3,10 +3,10 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-//! Stat shared types — event envelope, property, session, funnel, account,
+//! Stat shared types - event envelope, property, session, funnel, account,
 //! aggregate rows, ingest request, conversion, metric aggregate.
 //!
-//! Wire types — metric envelopes, properties, dimensions.
+//! Wire types - metric envelopes, properties, dimensions.
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -60,7 +60,7 @@ pub struct EventEnvelope {
     #[serde(default)]
     /// The app version.
     pub app_version: Option<String>,
-    /// Geo/device context — usually populated by the pipeline enrichment stage,
+    /// Geo/device context - usually populated by the pipeline enrichment stage,
     /// but SDKs may send hints.
     #[serde(default)]
     /// The geo.
@@ -87,7 +87,7 @@ pub struct EventEnvelope {
     /// The props.
     pub props: serde_json::Value,
     /// Set at ingest when the PII deny-list stripped at least one key
-    /// from `props` — dashboards distinguish cleaned payloads (stat DESIGN
+    /// from `props` - dashboards distinguish cleaned payloads (stat DESIGN
     /// §4, cross-cutting CC-7 doc alignment).
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     /// Whether PII was stripped.
@@ -135,8 +135,8 @@ pub struct Conversion {
     pub currency: Option<String>,
 }
 
-/// `POST /v1/m/collect` body — either a single envelope or an array.
-/// Ingest request body — one envelope or a batch.
+/// `POST /v1/m/collect` body - either a single envelope or an array.
+/// Ingest request body - one envelope or a batch.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum CollectBody {
@@ -345,7 +345,7 @@ pub struct AggregateRow {
     pub metrics: serde_json::Value,
 }
 
-/// Per-service traffic summary row — one row per `from_service → to_service`
+/// Per-service traffic summary row - one row per `from_service → to_service`
 /// pair, aggregated from TLS's `tls.traffic.*` metrics.
 /// Returned by `GET /v1/data/traffic`.
 #[derive(Debug, Clone, Serialize)]

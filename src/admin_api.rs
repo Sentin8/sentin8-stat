@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-//! Stat Admin API — properties, accounts, settings, retention.
+//! Stat Admin API - properties, accounts, settings, retention.
 //!
 //! Stories Requires `sentin8:stat:admin` scope.
 
@@ -34,7 +34,7 @@ fn err_db(e: sqlx::Error) -> (StatusCode, String) {
 /// Resolve the tenant env an admin operation targets.
 ///
 /// Fix A: `target_env_id` is REQUIRED on admin
-/// endpoints — no fallback to the token's `env_id` (the CLI's token carries
+/// endpoints - no fallback to the token's `env_id` (the CLI's token carries
 /// the system env, so a silent fallback leaks cross-tenant data and, in the
 /// delegated-token path, silently misroutes CRUD to the wrong env). 400 when
 /// missing/unparsable.
@@ -407,7 +407,7 @@ pub async fn update_settings(
 
 // ── Reaggregate (stat README §7) ───────────────────────────────────────
 
-/// Request body for `POST /v1/admin/properties/{id}/reaggregate` — the
+/// Request body for `POST /v1/admin/properties/{id}/reaggregate` - the
 /// raw-events window to rebuild. Both fields accept RFC 3339 timestamps;
 /// omitted fields default per `parse_reaggregate_window` (full omission =
 /// last 30 days).
@@ -434,19 +434,19 @@ pub struct AlertRule {
     pub property_id: Uuid,
     /// Display name.
     pub name: String,
-    /// Rule type — `threshold` (metric value vs threshold) or `anomaly`
+    /// Rule type - `threshold` (metric value vs threshold) or `anomaly`
     /// (moving-average deviation factor over the window).
     pub rule_type: String,
     /// Metric vocabulary key (`events.count`, `conversions.count`,
     /// `metric:{name}`).
     pub metric_name: String,
-    /// Comparator — `gt` | `gte` | `lt` | `lte`.
+    /// Comparator - `gt` | `gte` | `lt` | `lte`.
     pub comparator: String,
     /// Comparison threshold (metric value or deviation factor).
     pub threshold: f64,
     /// Moving-average lookback in hours (`anomaly` rules).
     pub window_hours: i32,
-    /// Noise floor — the rule never evaluates below it.
+    /// Noise floor - the rule never evaluates below it.
     pub min_sample: i32,
     /// Whether the rule evaluates.
     pub enabled: bool,
@@ -470,13 +470,13 @@ pub struct CreateAlertRuleRequest {
     /// `gt` | `gte` | `lt` | `lte`.
     pub comparator: String,
     /// Comparison threshold (metric value, or deviation factor for
-    /// `anomaly` — e.g. `3.0` = current exceeds 3× the baseline).
+    /// `anomaly` - e.g. `3.0` = current exceeds 3× the baseline).
     pub threshold: f64,
     #[serde(default = "default_window_hours")]
     /// Moving-average lookback in hours (`anomaly` rules).
     pub window_hours: i32,
     #[serde(default = "default_min_sample")]
-    /// Noise floor — the rule never evaluates below it.
+    /// Noise floor - the rule never evaluates below it.
     pub min_sample: i32,
     #[serde(default = "default_enabled")]
     /// Whether the rule evaluates.
@@ -499,7 +499,7 @@ fn default_enabled() -> bool {
 }
 
 /// Validate a create-alert-rule request against the known rule types,
-/// comparators, and metric vocabulary — 400 message on the first unknown
+/// comparators, and metric vocabulary - 400 message on the first unknown
 /// field (stat DESIGN §4: rules are validated against the aggregates at
 /// create time so the evaluator never encounters an unmapped metric).
 fn validate_alert_rule(req: &CreateAlertRuleRequest) -> Result<(), (StatusCode, String)> {
@@ -567,7 +567,7 @@ fn row_to_alert_rule(r: sqlx::postgres::PgRow) -> AlertRule {
 /// `POST /v1/admin/properties/{id}/reaggregate`
 /// Delete and rebuild the property's day-granularity `metrics` rollups over
 /// a raw-events window (stat README §7). v1 reaggregates from `stat.events`
-/// ONLY — a window reaching past the property's retention horizon is a 400
+/// ONLY - a window reaching past the property's retention horizon is a 400
 /// (the spilled raw data lives in Storage archives; per stat DESIGN §4.3.6
 /// the archive spill is the source-of-truth boundary and the Storage-archive
 /// replay path is out of scope for this endpoint). The recomputation shares the
@@ -612,7 +612,7 @@ pub async fn reaggregate(
         crate::worker::rollups::parse_reaggregate_window(req.from.as_deref(), req.to.as_deref())
             .map_err(|e| (StatusCode::BAD_REQUEST, e))?;
 
-    // Property existence + env scoping + retention read — one
+    // Property existence + env scoping + retention read - one
     // context-set transaction, mirroring the store's read pattern so the
     // horizon check runs on the property's own retention setting.
     let retention_days = {
@@ -831,7 +831,7 @@ pub async fn create_alert_rule(
     .fetch_one(&mut *conn)
     .await
     .map_err(|e| {
-        // FK to properties — the property does not exist in this env.
+        // FK to properties - the property does not exist in this env.
         if e.to_string().contains("foreign key") {
             (StatusCode::NOT_FOUND, "property not found".into())
         } else {
@@ -995,7 +995,7 @@ async fn emit_audit(
     .await;
 }
 
-/// Emit an audit journal row with caller-provided `details` — the
+/// Emit an audit journal row with caller-provided `details` - the
 /// reaggregate write records the rebuilt window (stat DESIGN §5
 /// "Audit journaling": admin writes land in `audit_journal`, best-effort).
 async fn emit_audit_details(
@@ -1018,10 +1018,10 @@ async fn emit_audit_details(
 
 /// Append an event to the service's local `stat.outbox` for Bus relay
 /// (DBX §6.7: local outbox + produce API). The outbox is FORCE-RLS'd, and
-/// `set_config(..., true)` is TRANSACTION-local — so the context set and
+/// `set_config(..., true)` is TRANSACTION-local - so the context set and
 /// the INSERT share ONE explicit transaction (a bare `pool.acquire()` runs
 /// each statement in its own autocommit transaction and the context
-/// evaporates before the INSERT — stat DESIGN §5).
+/// evaporates before the INSERT - stat DESIGN §5).
 async fn emit_event(
     pool: &sqlx::PgPool,
     env_id: uuid::Uuid,

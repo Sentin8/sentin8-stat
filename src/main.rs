@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-//! Sentin8 Stat — standalone analytics and telemetry collection service.
+//! Sentin8 Stat - standalone analytics and telemetry collection service.
 //!
 //! See.
 //!

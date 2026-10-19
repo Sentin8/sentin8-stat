@@ -28,7 +28,7 @@ use crate::config::StatConfig;
 
 /// Reconnect delay when the Bus SSE connection drops.
 const RECONNECT_DELAY: Duration = Duration::from_secs(2);
-/// DB fallback poll interval — safety net for unprocessed events.
+/// DB fallback poll interval - safety net for unprocessed events.
 const DB_FALLBACK_INTERVAL: Duration = Duration::from_secs(30);
 /// Archive sweep cadence (stat design §4.3.6): hourly.
 const ARCHIVE_SWEEP_INTERVAL_SECS: u64 = 3600;
@@ -41,10 +41,10 @@ const CONSUME_BATCH: u32 = 25;
 /// Max retries before a message is moved to the DLQ.
 const MAX_RETRIES: u32 = 3;
 
-/// Spawn every worker task. Called once at service state build — the
+/// Spawn every worker task. Called once at service state build - the
 /// tasks run until process shutdown and share the service's capped pool.
 pub async fn spawn(pool: sqlx::PgPool, config: &StatConfig, bus: BusClient) {
-    // Curated alert evaluator — every 60s, reads aggregate_*_daily
+    // Curated alert evaluator - every 60s, reads aggregate_*_daily
     // and produces `sentin8:stat:alert:event_spike` /
     // `sentin8:stat:alert:conversion_drop` events via Bus HTTP API
     // (fire-and-forget).
@@ -60,7 +60,7 @@ pub async fn spawn(pool: sqlx::PgPool, config: &StatConfig, bus: BusClient) {
         });
     }
 
-    // Multi-granularity rollup — every 60s, aggregates
+    // Multi-granularity rollup - every 60s, aggregates
     // aggregate_metrics_daily into rollups at minute, hour, day, week,
     // month, year granularities, then publishes a
     // `stat:rollups:*` snapshot to Valkey so Dash's MetricsTable gets
@@ -81,7 +81,7 @@ pub async fn spawn(pool: sqlx::PgPool, config: &StatConfig, bus: BusClient) {
         });
     }
 
-    // Valkey pub/sub subscriber — subscribes to `stat:metrics:tls` and
+    // Valkey pub/sub subscriber - subscribes to `stat:metrics:tls` and
     // `stat:metrics:log`, aggregates into minute/hour/day rollups, and
     // publishes back to `stat:rollups:{granularity}` channels.
     {
@@ -94,8 +94,8 @@ pub async fn spawn(pool: sqlx::PgPool, config: &StatConfig, bus: BusClient) {
     }
 
     // MemBus telemetry ingest (SDD §2.3): subscribes to the
-    // `stat.telemetry` Pub/Sub family — shield decision frames and
-    // service metric frames — decodes, resolves the emitter slug, and
+    // `stat.telemetry` Pub/Sub family - shield decision frames and
+    // service metric frames - decodes, resolves the emitter slug, and
     // inserts on the store path. Ephemeral class: no ack/retry/DLQ; a
     // stat outage drops frames by contract (non-important updates).
     {
@@ -132,7 +132,7 @@ pub async fn spawn(pool: sqlx::PgPool, config: &StatConfig, bus: BusClient) {
                     }
                     Ok(_) => {}
                     Err(e) => {
-                        tracing::warn!(error = %e, "archive sweep failed — rows stay queued");
+                        tracing::warn!(error = %e, "archive sweep failed - rows stay queued");
                     }
                 }
             }
@@ -158,13 +158,13 @@ pub async fn spawn(pool: sqlx::PgPool, config: &StatConfig, bus: BusClient) {
         });
     }
 
-    // SSE consumer task — single Server-Sent Events connection to Bus
+    // SSE consumer task - single Server-Sent Events connection to Bus
     // (no HTTP polling). One connection per stream family is enough;
     // Bus pushes messages as they arrive.
     let state = Arc::new(WorkerState { pool, bus });
     tokio::spawn(sse_consume_loop(state.clone()));
 
-    // DB fallback poll — safety net for unprocessed events (every 30s).
+    // DB fallback poll - safety net for unprocessed events (every 30s).
     // If the Bus enqueue in the ingest path fails (network issue, Bus
     // restart, etc.), events still get processed via this periodic scan.
     let db_state = state.clone();
@@ -176,7 +176,7 @@ struct WorkerState {
     bus: BusClient,
 }
 
-/// SSE consumer loop — connect to Bus via Server-Sent Events, receive
+/// SSE consumer loop - connect to Bus via Server-Sent Events, receive
 /// pushed messages, process each event, and ACK via the HTTP ack
 /// endpoint. No HTTP polling. Reconnects on disconnect with a 2s
 /// backoff.
@@ -231,7 +231,7 @@ async fn sse_consume_loop(state: Arc<WorkerState>) {
                     if let Some(d) = line.strip_prefix("data: ") {
                         data_line = d.to_string();
                     }
-                    // `id:` lines and `:` comments (heartbeats) are skipped —
+                    // `id:` lines and `:` comments (heartbeats) are skipped -
                     // ACKs use message_id from the JSON data.
                 }
 
@@ -303,7 +303,7 @@ async fn sse_consume_loop(state: Arc<WorkerState>) {
     }
 }
 
-/// DB fallback poll — every 30s, scan for unprocessed events as a safety
+/// DB fallback poll - every 30s, scan for unprocessed events as a safety
 /// net in case the Bus enqueue in the ingest path fails (network issue,
 /// Bus restart, etc.). This runs alongside the SSE consumer.
 async fn db_fallback_loop(state: Arc<WorkerState>) {
@@ -344,7 +344,7 @@ async fn process_one(state: &WorkerState, event_id: Uuid) -> Result<(), String> 
     pipeline::run_pipeline(&state.pool, &mut event).await
 }
 
-/// Nack with retry — after max retries, the Bus DLQ handles poison messages.
+/// Nack with retry - after max retries, the Bus DLQ handles poison messages.
 async fn nack_with_retry(state: &WorkerState, message_id: &str) -> Result<(), String> {
     // The Bus nack endpoint tracks retries server-side; after max_retries it
     // moves the message to the DLQ. We call nack with the retry count.

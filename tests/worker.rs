@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-//! Worker pipeline unit tests — ArchiveSummary / EventRecord serde shapes
+//! Worker pipeline unit tests - ArchiveSummary / EventRecord serde shapes
 //! (the pipeline itself needs live PG + Valkey + Bus and is covered by
 //! the lifecycle e2e; see stat DESIGN.md §9).
 

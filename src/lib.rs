@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-//! Sentin8 Stat — library re-exports for integration tests.
+//! Sentin8 Stat - library re-exports for integration tests.
 
 #![deny(missing_docs)]
 
@@ -23,7 +23,7 @@ pub mod handlers;
 pub mod ingest;
 /// OpenAPI spec assembly.
 pub mod openapi;
-/// Shield (Sentin8:Policy) integration — shared bridge re-exports.
+/// Shield (Sentin8:Policy) integration - shared bridge re-exports.
 pub mod policy;
 pub mod stat_aliases;
 /// Service self-registration declarations.

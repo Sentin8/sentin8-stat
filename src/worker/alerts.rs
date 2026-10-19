@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Sentin8:Stat
 // SPDX-License-Identifier: Apache-2.0
 
-//! Stat curated alert evaluation — emits `stat.alert.*` events via
+//! Stat curated alert evaluation - emits `stat.alert.*` events via
 //! Bus HTTP API (fire-and-forget) when thresholds are crossed.
 //!
 //! A periodic background task (every 60s) reads the
@@ -15,9 +15,9 @@
 //! - **Conversion rate drop**: conversion count drops below 50% of the
 //!   7-day average.
 //!
-//! Alerts are sent via `BusClient::produce()` — fire-and-forget, NOT
+//! Alerts are sent via `BusClient::produce()` - fire-and-forget, NOT
 //! written to `inbox`. If a produce call fails, the alert is lost
-//! (best-effort) — the next evaluation cycle re-detects and retries.
+//! (best-effort) - the next evaluation cycle re-detects and retries.
 //!
 //! Alongside the curated rules, each pass evaluates the per-property
 //! custom rules in `stat.alert_rules` (stat README §7, stat DESIGN §2/§3):
@@ -167,15 +167,15 @@ async fn evaluate_conversion_drops(
 // Rows of `stat.alert_rules` evaluated each pass alongside the curated
 // spike/drop rules. Two rule types over the daily aggregates:
 //
-// - `threshold` — today's metric value vs `threshold` via `comparator`.
-// - `anomaly` — the moving-average deviation factor
+// - `threshold` - today's metric value vs `threshold` via `comparator`.
+// - `anomaly` - the moving-average deviation factor
 //   (`anomaly_deviation(current, avg)`) over the past
 //   `ceil(window_hours / 24)` daily buckets vs `threshold` via
 //   `comparator` (e.g. `gt 3.0` = current exceeds 3× the baseline).
 //
 // `min_sample` is the current-bucket noise floor (mirrors the curated
 // spike rule's `MIN_EVENT_VOLUME`): a rule never evaluates below it.
-// Fires ride the same alert → Post path as the curated rules — same
+// Fires ride the same alert → Post path as the curated rules - same
 // envelope (property/env, dedup_key, severity, title, body) plus
 // `rule_id` + `rule_type`, deduped per rule per day bucket in the
 // payload key (the curated rules' dedupe contract).
@@ -198,17 +198,17 @@ pub struct AlertRule {
     pub metric_name: String,
     /// `gt` | `gte` | `lt` | `lte`.
     pub comparator: String,
-    /// Comparison threshold — metric value for `threshold`, deviation
+    /// Comparison threshold - metric value for `threshold`, deviation
     /// factor for `anomaly`.
     pub threshold: f64,
     /// Moving-average lookback in hours (`anomaly`); whole days cover
     /// `ceil(window_hours / 24)` daily buckets.
     pub window_hours: i32,
-    /// Current-bucket noise floor — the rule never evaluates below it.
+    /// Current-bucket noise floor - the rule never evaluates below it.
     pub min_sample: i32,
 }
 
-/// Resolution of a metric vocabulary key to its aggregate source — the
+/// Resolution of a metric vocabulary key to its aggregate source - the
 /// allowlist is the ONLY path a rule's metric reaches SQL (create-time
 /// validation 400s unknown keys, so the `format!` interpolation in the
 /// query builders below never sees caller input outside it).
@@ -247,7 +247,7 @@ pub(crate) fn metric_source(metric_name: &str) -> Option<MetricSource> {
     }
 }
 
-/// Evaluate `comparator(value, threshold)` — the pure comparator behind
+/// Evaluate `comparator(value, threshold)` - the pure comparator behind
 /// both rule types (`threshold` compares the metric value, `anomaly`
 /// compares the deviation factor). Unknown comparators never fire (the
 /// CHECK constraint and create-time validation admit only the four).
@@ -261,7 +261,7 @@ pub fn evaluate_comparator(value: f64, comparator: &str, threshold: f64) -> bool
     }
 }
 
-/// Deviation factor of the current bucket vs the moving average —
+/// Deviation factor of the current bucket vs the moving average -
 /// `current / avg` when the baseline is positive, `INFINITY` when the
 /// baseline is flat-zero and the current value is not (unbounded upward
 /// deviation), `1.0` when both are zero (no deviation).
@@ -279,7 +279,7 @@ pub fn anomaly_deviation(current: f64, avg: f64) -> f64 {
 /// (`vertical:service:resource:operation`).
 const RULE_TRIGGERED_EVENT: &str = "sentin8:stat:alert:rule_triggered";
 
-/// One custom-rule pass: discover the envs with enabled rules (bare read —
+/// One custom-rule pass: discover the envs with enabled rules (bare read -
 /// the rollup pass's owner-read posture; only env ids are touched), then
 /// evaluate each env under its own context-set transaction.
 async fn evaluate_custom_rules(pool: &sqlx::PgPool, bus: &BusClient) -> Result<(), sqlx::Error> {
@@ -299,7 +299,7 @@ async fn evaluate_custom_rules(pool: &sqlx::PgPool, bus: &BusClient) -> Result<(
     Ok(())
 }
 
-/// Distinct envs holding at least one enabled rule — bare pool read (env
+/// Distinct envs holding at least one enabled rule - bare pool read (env
 /// ids only; the per-env rule/aggregate reads below are context-scoped).
 async fn rule_envs(pool: &sqlx::PgPool) -> Result<Vec<uuid::Uuid>, sqlx::Error> {
     let rows = sqlx::query(
@@ -312,7 +312,7 @@ async fn rule_envs(pool: &sqlx::PgPool) -> Result<Vec<uuid::Uuid>, sqlx::Error> 
     Ok(rows.into_iter().map(|r| r.get("env_id")).collect())
 }
 
-/// Evaluate one env's enabled rules — ONE explicit transaction:
+/// Evaluate one env's enabled rules - ONE explicit transaction:
 /// context-set (the audit-consumer pattern; `set_config(..., true)` is
 /// transaction-local, stat DESIGN §5) → load the rules (explicit
 /// `env_id` clause + property JOIN as defense-in-depth) → per-rule
@@ -355,19 +355,19 @@ async fn evaluate_env_rules(
             window_hours: row.get("window_hours"),
             min_sample: row.get("min_sample"),
         };
-        // Unknown metric keys are rejected at create time — skip
+        // Unknown metric keys are rejected at create time - skip
         // defensively rather than fail the whole pass.
         let Some(src) = metric_source(&rule.metric_name) else {
             continue;
         };
         let current = metric_bucket_value(&mut tx, &src, rule.property_id, today).await?;
         if current < rule.min_sample as f64 {
-            continue; // below the noise floor — no evaluation
+            continue; // below the noise floor - no evaluation
         }
 
         let (fire, baseline, deviation_factor) = if rule.rule_type == "anomaly" {
             // Daily buckets: the window covers ceil(window_hours / 24)
-            // whole days, ending at today (excluded — that's the current
+            // whole days, ending at today (excluded - that's the current
             // bucket).
             let window_days = ((rule.window_hours.max(1) as i64) + 23) / 24;
             let history = metric_history(
@@ -379,7 +379,7 @@ async fn evaluate_env_rules(
             )
             .await?;
             if history.is_empty() {
-                continue; // no baseline buckets yet — nothing to deviate from
+                continue; // no baseline buckets yet - nothing to deviate from
             }
             let avg = history.iter().sum::<f64>() / history.len() as f64;
             let d = anomaly_deviation(current, avg);
@@ -470,7 +470,7 @@ async fn metric_bucket_value(
     Ok(row.get("v"))
 }
 
-/// Per-day SUMs of one metric source over `[from_day, to_day)` — only
+/// Per-day SUMs of one metric source over `[from_day, to_day)` - only
 /// buckets with at least one aggregate row are returned (the
 /// moving-average baseline is taken over non-empty buckets).
 async fn metric_history(
@@ -492,7 +492,7 @@ async fn metric_history(
     Ok(rows.into_iter().map(|r| r.get("v")).collect())
 }
 
-/// Build the fire payload — the curated rules' envelope (property/env,
+/// Build the fire payload - the curated rules' envelope (property/env,
 /// dedup_key, severity, title, body) plus the rule context (`rule_id`,
 /// `rule_type`, metric, comparator, threshold, current, baseline).
 fn rule_payload(
@@ -502,7 +502,7 @@ fn rule_payload(
     baseline: f64,
     deviation: Option<f64>,
 ) -> serde_json::Value {
-    // Upward comparators inform (info), downward comparators warn — the
+    // Upward comparators inform (info), downward comparators warn - the
     // curated rules' severity split (spike=info, drop=warning).
     let severity = if rule.comparator.starts_with("lt") {
         "warning"
@@ -570,7 +570,7 @@ async fn fire_and_forget(bus: &BusClient, event_type: &str, payload: serde_json:
         payload,
         correlation_id: None,
         idempotency_key: None,
-        publisher_id_token: None, // Worker M2M token — set if available
+        publisher_id_token: None, // Worker M2M token - set if available
         publisher_subject: Some("sentin8:stat".into()),
     };
     if let Err(e) = bus.produce(&req).await {
@@ -644,7 +644,7 @@ mod tests {
         let drop = anomaly_deviation(40.0, 100.0);
         assert!(evaluate_comparator(drop, "lt", 0.5));
         assert!(!evaluate_comparator(drop, "gt", 3.0));
-        // A fresh metric from a flat-zero baseline deviates infinitely —
+        // A fresh metric from a flat-zero baseline deviates infinitely -
         // gated in practice by the min_sample noise floor.
         assert!(evaluate_comparator(anomaly_deviation(25.0, 0.0), "gt", 3.0));
     }

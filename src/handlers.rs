@@ -23,10 +23,10 @@ pub struct AppState {
     /// DCR-registered M2M-backed Bus client (built once at startup).
     /// The bus client.
     pub bus_client: sentin8::bus::client::BusClient,
-    /// Shield engine ( — ): additional gate after scope.
+    /// Shield engine ( - ): additional gate after scope.
     /// The policy.
     pub policy: Arc<crate::policy::Engine>,
-    /// Shared Sentin8:Policy admin surface ( — one
+    /// Shared Sentin8:Policy admin surface ( - one
     /// implementation for every service; mounted in server::routes).
     /// The admin.
     pub admin: sentin8::shield::admin::SharedAdminState,

@@ -6,16 +6,16 @@
 //! Valkey pub/sub subscriber for real-time metrics from tls and log.
 //!
 //! Subscribes to:
-//!   - `stat:metrics:tls` — traffic metrics (count, latency, errors per from→to)
-//!   - `stat:metrics:log` — log error/warning counts per service
+//!   - `stat:metrics:tls` - traffic metrics (count, latency, errors per from→to)
+//!   - `stat:metrics:log` - log error/warning counts per service
 //!
 //! Aggregates incoming metrics into per-minute, per-hour, per-day windows
 //! in memory, then publishes rollups to Valkey channels every 10 seconds:
-//!   - `stat:rollups:minute` — 60-second window (drained at the minute
+//!   - `stat:rollups:minute` - 60-second window (drained at the minute
 //!                              boundary, snapshotted otherwise)
-//!   - `stat:rollups:hour`   — rolling 1-hour window (snapshot each
+//!   - `stat:rollups:hour`   - rolling 1-hour window (snapshot each
 //!                              publish, drained at the hour boundary)
-//!   - `stat:rollups:day`    — rolling 24-hour window (snapshot each
+//!   - `stat:rollups:day`    - rolling 24-hour window (snapshot each
 //!                              publish, drained at 00:00 UTC)
 //!
 //! All three channels publish every 10 seconds so consumers get near-real-
@@ -103,11 +103,11 @@ pub async fn run_valkey_subscriber(valkey_url: String) -> anyhow::Result<()> {
         day_buf.clone(),
     );
 
-    // Main message loop — receive metrics and accumulate into all buffers.
+    // Main message loop - receive metrics and accumulate into all buffers.
     // GLIDE pubsub: ONE pubsub-enabled client subscribes once; the inner
     // loop drains messages WITHOUT tearing the subscription down. Only a
     // terminal channel end (connection closed, Valkey restart) breaks the
-    // inner loop, and the outer `loop` re-establishes the subscription —
+    // inner loop, and the outer `loop` re-establishes the subscription -
     // connect-time subscriptions survive glide-core's automatic
     // reconnects in between (group DESIGN.md §3.1).
     'outer: loop {
@@ -136,14 +136,14 @@ pub async fn run_valkey_subscriber(valkey_url: String) -> anyhow::Result<()> {
 
         tracing::info!("stat: subscribed to stat:metrics:tls and stat:metrics:log");
 
-        // Inner receive loop — ONE subscription, many messages. Recreating
+        // Inner receive loop - ONE subscription, many messages. Recreating
         // the client per message was the ~2/s connection churn (a client
         // create + drop per metric frame).
         loop {
             let payload: String = match pubsub_client.get_pubsub_message().await {
                 Ok(msg) => String::from_utf8_lossy(&msg.payload).into_owned(),
                 Err(_) => {
-                    tracing::warn!("stat: metrics channel ended — reconnecting");
+                    tracing::warn!("stat: metrics channel ended - reconnecting");
                     tokio::time::sleep(Duration::from_secs(3)).await;
                     continue 'outer;
                 }
@@ -269,7 +269,7 @@ async fn publish_rollups(
                 )
                 .collect()
         } else {
-            // Snapshot only — clone the aggregated values without clearing
+            // Snapshot only - clone the aggregated values without clearing
             // the buffer, so the next publish is a rolling aggregate.
             b.iter()
                 .map(
