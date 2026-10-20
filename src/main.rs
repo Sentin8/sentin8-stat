@@ -29,10 +29,10 @@ mod handlers;
 mod ingest;
 mod openapi;
 mod policy;
-mod stat_aliases;
 mod registration;
 #[allow(dead_code)]
 mod server;
+mod stat_aliases;
 #[allow(dead_code)]
 mod store;
 #[allow(dead_code)]

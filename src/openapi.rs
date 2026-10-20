@@ -86,4 +86,5 @@ use crate::types;
         (name = "policy", description = "Shield policy administration (shared surface)"),
         (name = "stat", description = "Sentin8:Stat admin API - properties, accounts, settings, alert rules"),
     ),
-)]pub struct StatOpenApi;
+)]
+pub struct StatOpenApi;

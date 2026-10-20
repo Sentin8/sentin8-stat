@@ -156,7 +156,10 @@ pub async fn run_report(
         to,
     )
     .await?;
-    Ok(Json(types::ReportRunResponse { report: report_id, rows }))
+    Ok(Json(types::ReportRunResponse {
+        report: report_id,
+        rows,
+    }))
 }
 
 #[derive(Debug, Deserialize)]
