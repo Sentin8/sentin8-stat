@@ -65,7 +65,7 @@ impl StatConfig {
                     sentin8::config::Sentin8Config::default_database_url().to_string()
                 })
             }),
-            // VALKEYDERIVE-1 (group DESIGN.md §3.1): explicit env override,
+            // (group DESIGN.md §3.1): explicit env override,
             // else the plane-derived URL - the historical `/3` DB number was
             // inert (GLIDE connects at DB 0; ACLs are the isolation).
             valkey_url: env::var("SENTIN8_STAT_VALKEY_URL")

@@ -440,7 +440,7 @@ CREATE POLICY stat_accounts_delete ON stat.accounts FOR DELETE USING (sentin8_co
 --
 -- NOTE: this seed covers the platform services' own properties. Every
 -- other service's telemetry property is declared in its repo's
--- `service-registration.json` (`telemetry_property` - TELESEED-1,
+-- `service-registration.json` (`telemetry_property` -,
 -- design `design/sentin8-provisioned-rls-and-telemetry-design.md`
 -- §2.2) and seeded into this table on the platform DB by
 -- `sentin8-cli vertical init`/`enroll` (a vertical's own init SQL runs
@@ -622,7 +622,7 @@ CREATE POLICY audit_journal_dml ON stat.audit_journal
 -- This service's own schema: USAGE for its role (platform.sql no longer
 -- seeds per-service USAGE; the service declares it here).
 GRANT USAGE ON SCHEMA stat TO sentin8_stat_service;
--- GRANT-2: alert rules consumed by the alerts worker.
+-- alert rules consumed by the alerts worker.
 GRANT SELECT, INSERT, UPDATE, DELETE ON stat.alert_rules TO sentin8_stat_service;
 GRANT SELECT, INSERT, UPDATE, DELETE ON stat.outbox TO sentin8_stat_service;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA stat TO sentin8_stat_service;

@@ -431,7 +431,7 @@ pub fn strip_pii(props: &serde_json::Value) -> (serde_json::Value, bool) {
     (serde_json::Value::Object(cleaned), stripped)
 }
 
-// ── Data-API response envelopes (OAPEC-9 typed bodies) ────────────────────
+// ── Data-API response envelopes (typed bodies) ────────────────────
 
 /// The saved-report catalog for a property.
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
