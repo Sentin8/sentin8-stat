@@ -184,6 +184,7 @@ pub fn print(section: Option<String>) -> anyhow::Result<()> {
         service_type: "sentin8:stat",
         subdomain: "stat",
         health_path: "/v1/health",
+        exposure: "",
         admin_scopes: ADMIN_SCOPES,
         error_codes: &[],
         consent_providers: &[],
