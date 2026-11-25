@@ -8,7 +8,8 @@
       "telemetry_property": {
         "slug": "stat",
         "name": "Sentin8:Stat Platform Telemetry"
-      }
+      },
+      "exposure": "internal"
     }
   ]
 }
